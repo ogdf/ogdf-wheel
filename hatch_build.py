@@ -7,6 +7,7 @@ try:
 except:
     cached_property = property
 import multiprocessing
+import sysconfig
 
 class CustomBuildHook(BuildHookInterface):
     @cached_property
@@ -38,6 +39,7 @@ class CustomBuildHook(BuildHookInterface):
         print(self.run("cmake", "--build", ".", "--parallel", str(multiprocessing.cpu_count())))
         print(self.run("cmake", "--install", "."))
         build_data["pure_python"] = False
+        build_data["tag"] = "py3-%s" % sysconfig.get_platform()
 
     def finalize(self, version, build_data, artifact_path):
         """
