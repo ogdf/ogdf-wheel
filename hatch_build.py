@@ -35,11 +35,14 @@ class CustomBuildHook(BuildHookInterface):
 
         Any modifications to the build data will be seen by the build target.
         """
-        print(self.run("cmake", self.ogdf_src_dir, "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir))
-        print(self.run("cmake", "--build", ".", "--parallel", str(multiprocessing.cpu_count())))
+        print(self.run("cmake", self.ogdf_src_dir, "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
+            "-DCMAKE_BUILD_RPATH=$ORIGIN", "-DCMAKE_INSTALL_RPATH=$ORIGIN"))
+        # TODO -march=generic
+        print(self.run("cmake", "--build", ".", "--parallel", str(multiprocessing.cpu_count())), "--config", "Release") # windows needs Release config repeated
         print(self.run("cmake", "--install", "."))
         build_data["pure_python"] = False
-        build_data["tag"] = "py3-%s" % sysconfig.get_platform()
+        build_data["tag"] = "py3-%s" % sysconfig.get_platform() # FIXME to many components on macos
+        print("Set wheel tag to", build_data["tag"])
 
     def finalize(self, version, build_data, artifact_path):
         """
