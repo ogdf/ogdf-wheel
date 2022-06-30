@@ -2,7 +2,10 @@ from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from pprint import pprint
 import subprocess
 from pathlib import Path
-from functools import cached_property
+try:
+    from functools import cached_property
+except:
+    cached_property = property
 import multiprocessing
 
 class CustomBuildHook(BuildHookInterface):
