@@ -26,7 +26,7 @@ class CustomBuildHook(BuildHookInterface):
         return Path(self.root) / "ogdf"
 
     def run(self, *args):
-        return subprocess.run(args, capture_output=False, check=True, cwd=self.cmake_build_dir)
+        return subprocess.run(map(str, args), capture_output=False, check=True, cwd=self.cmake_build_dir)
 
     def initialize(self, version, build_data):
         """
