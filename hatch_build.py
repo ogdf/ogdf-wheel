@@ -35,11 +35,6 @@ class CustomBuildHook(BuildHookInterface):
 
         Any modifications to the build data will be seen by the build target.
         """
-        print(self.run("cmake", self.ogdf_src_dir, "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
-            "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path", "-DMACOSX_RPATH=TRUE"))
-        # TODO -march=generic
-        print(self.run("cmake", "--build", ".", "--parallel", str(multiprocessing.cpu_count())), "--config", "Release") # windows needs Release config repeated
-        print(self.run("cmake", "--install", "."))
         build_data["pure_python"] = False
         plat = sysconfig.get_platform()
         # strip version from macosx-10.9-x86_64
@@ -48,6 +43,18 @@ class CustomBuildHook(BuildHookInterface):
             plat = "%s-%s" % (plats[0], plats[-1])
         build_data["tag"] = "py3-%s" % plat
         print("Set wheel tag to", build_data["tag"])
+
+        flags = [
+            "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
+            "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path", "-DMACOSX_RPATH=TRUE",
+        ]
+        if "linux" in plat:
+            arch = "x86-64-v2" if sys.maxsize > 2**32 else "i686"
+            flags.append("-DOGDF_EXTRA_CXX_FLAGS='-march=%s -mtune=generic'" % arch)
+        self.run("cmake", self.ogdf_src_dir, *flags)
+
+        self.run("cmake", "--build", ".", "--config", "Release") # windows needs Release config repeated
+        self.run("cmake", "--install", ".")
 
     def finalize(self, version, build_data, artifact_path):
         """
