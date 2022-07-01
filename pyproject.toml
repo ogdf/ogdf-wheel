@@ -10,10 +10,23 @@ requires-python = ">=3.7"
 # dependencies = ["matplotlib", "annoy ~= 1.17.0"]
 
 [tool.cibuildwheel]
-build = ["cp37-*"]
+build = ["cp310-*"]
 # Skip 32-bit builds, musl build, and pypy builds
-skip = ["*-win32", "*-manylinux_i686", "*-musllinux_*", "*pypy*"]
+skip = ["*pypy*"] # "*-win32", "*-manylinux_i686", "*-musllinux_*"
 build-frontend = "build"
+archs = ["auto"]
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "universal2", "arm64"]
+
+[tool.cibuildwheel.linux]
+archs = ["auto", "aarch64"]
+
+# Use delvewheel on windows
+# https://cibuildwheel.readthedocs.io/en/stable/options/#repair-wheel-command
+# [tool.cibuildwheel.windows]
+# before-build = "pip install delvewheel"
+# repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
 
 [tool.hatch.build]
 # ignore-vcs = true
