@@ -45,13 +45,17 @@ class CustomBuildHook(BuildHookInterface):
         build_data["tag"] = "py3-%s" % plat
         print("Set wheel tag to", build_data["tag"])
 
+        # disable march=native optimizations (including SSE3)
+        comp_spec_cmake = self.ogdf_src_dir / "cmake" / "compiler-specifics.cmake"
+        with open(comp_spec_cmake , "rt") as f:
+            lines = f.readlines()
+        with open(comp_spec_cmake , "wt") as f:
+            f.writelines("# " + l if "march=native" in l else l for l in lines)
+
         flags = [
             "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
             "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path", "-DMACOSX_RPATH=TRUE",
         ]
-        if "linux" in plat:
-            arch = "x86-64" if sys.maxsize > 2**32 else "i686"
-            flags.append("-DOGDF_EXTRA_CXX_FLAGS='-march=%s -mtune=generic'" % arch)
         self.run("cmake", self.ogdf_src_dir, *flags)
 
         self.run("cmake", "--build", ".", "--config", "Release") # windows needs Release config repeated
