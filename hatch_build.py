@@ -41,7 +41,12 @@ class CustomBuildHook(BuildHookInterface):
         print(self.run("cmake", "--build", ".", "--parallel", str(multiprocessing.cpu_count())), "--config", "Release") # windows needs Release config repeated
         print(self.run("cmake", "--install", "."))
         build_data["pure_python"] = False
-        build_data["tag"] = "py3-%s" % sysconfig.get_platform() # FIXME to many components on macos
+        plat = sysconfig.get_platform()
+        # strip version from macosx-10.9-x86_64
+        if "macos" in plat:
+            plats = plat.split("-")
+            plat = "%s-%s" % (plats[0], plats[-1])
+        build_data["tag"] = "py3-%s" % plat
         print("Set wheel tag to", build_data["tag"])
 
     def finalize(self, version, build_data, artifact_path):
