@@ -2,12 +2,13 @@ from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from pprint import pprint
 import subprocess
 from pathlib import Path
+import multiprocessing
+import sys
+import sysconfig
 try:
     from functools import cached_property
 except:
     cached_property = property
-import multiprocessing
-import sysconfig
 
 class CustomBuildHook(BuildHookInterface):
     @cached_property
