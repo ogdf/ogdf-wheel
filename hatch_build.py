@@ -50,7 +50,7 @@ class CustomBuildHook(BuildHookInterface):
             "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path", "-DMACOSX_RPATH=TRUE",
         ]
         if "linux" in plat:
-            arch = "x86-64-v2" if sys.maxsize > 2**32 else "i686"
+            arch = "x86-64" if sys.maxsize > 2**32 else "i686"
             flags.append("-DOGDF_EXTRA_CXX_FLAGS='-march=%s -mtune=generic'" % arch)
         self.run("cmake", self.ogdf_src_dir, *flags)
 
