@@ -36,7 +36,7 @@ class CustomBuildHook(BuildHookInterface):
         Any modifications to the build data will be seen by the build target.
         """
         print(self.run("cmake", self.ogdf_src_dir, "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
-            "-DCMAKE_BUILD_RPATH=$ORIGIN", "-DCMAKE_INSTALL_RPATH=$ORIGIN"))
+            "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path", "-DMACOSX_RPATH=TRUE"))
         # TODO -march=generic
         print(self.run("cmake", "--build", ".", "--parallel", str(multiprocessing.cpu_count())), "--config", "Release") # windows needs Release config repeated
         print(self.run("cmake", "--install", "."))
