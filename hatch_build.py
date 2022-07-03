@@ -42,7 +42,7 @@ class CustomBuildHook(BuildHookInterface):
         if "macos" in plat:
             plats = plat.split("-")
             plat = "%s-%s" % (plats[0], plats[-1])
-        build_data["tag"] = "py3-%s" % plat
+        build_data["tag"] = "py3-none-%s" % plat.replace("-", "_")
         print("Set wheel tag to", build_data["tag"])
 
         # disable march=native optimizations (including SSE3)
