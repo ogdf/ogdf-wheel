@@ -14,6 +14,11 @@ build = ["cp37-*"]
 # Skip 32-bit builds, musl build, and pypy builds
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux_*", "*pypy*"]
 build-frontend = "build"
+test-command = [
+  "pip install ogdf-python",
+  "python {project}/test_ogdf_info.py",
+  "python {project}/test_layouts.py",
+]
 
 [tool.hatch.build]
 # ignore-vcs = true
