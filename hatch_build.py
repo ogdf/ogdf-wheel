@@ -58,7 +58,12 @@ class CustomBuildHook(BuildHookInterface):
         ]
         self.run("cmake", self.ogdf_src_dir, *flags)
 
-        self.run("cmake", "--build", ".", "--config", "Release") # windows needs Release config repeated
+        # windows needs Release config repeated but no parallel
+        build_opts = []
+        if "win" not in build_data["tag"]:
+            build_opts = ["--parallel", str(multiprocessing.cpu_count())]
+        self.run("cmake", "--build", ".", "--config", "Release", *build_opts)
+        
         self.run("cmake", "--install", ".")
 
     def finalize(self, version, build_data, artifact_path):
