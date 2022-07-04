@@ -20,15 +20,6 @@ def test_layouts():
     cppinclude("ogdf/layered/OptimalRanking.h")
     cppinclude("ogdf/layered/SugiyamaLayout.h")
 
-    try:
-        ogdf.GraphAttributes
-    except:
-        pass
-    try:
-        ogdf.Graph
-    except:
-        pass
-
     G = ogdf.Graph()
     ogdf.setSeed(1)
     ogdf.randomPlanarTriconnectedGraph(G, 20, 40)

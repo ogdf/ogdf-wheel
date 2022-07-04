@@ -10,13 +10,13 @@ requires-python = ">=3.7"
 # dependencies = ["matplotlib", "annoy ~= 1.17.0"]
 
 [tool.cibuildwheel]
-build = ["cp37-*"]
+build = ["cp39-*"]
 # Skip 32-bit builds, musl build, and pypy builds
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux_*", "*pypy*"]
 build-frontend = "build"
 test-command = [
   "pip install ogdf-python",
-  "python {project}/test_ogdf_info.py",
+  "python -m ogdf_python.info",
   "python {project}/test_layouts.py",
 ]
 
