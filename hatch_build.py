@@ -13,7 +13,7 @@ except:
 class CustomBuildHook(BuildHookInterface):
     @cached_property
     def cmake_build_dir(self):
-        p = Path(self.root) / "cmake_build"
+        p = Path(self.directory) / "cmake_build"
         p.mkdir(parents=True, exist_ok=True)
         return p
 

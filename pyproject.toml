@@ -20,13 +20,11 @@ test-command = [
   "python {project}/test_layouts.py",
 ]
 
-[tool.hatch.build]
-# ignore-vcs = true
-
 [tool.hatch.build.targets.sdist]
-include = ["/ogdf"]
+# include = ["/ogdf"]
 
 [tool.hatch.build.targets.wheel]
+artifacts = ["*.so", "*.dll", "*.lib"]
 exclude = ["hatch_build.py"]
 
 [tool.hatch.build.targets.wheel.shared-data]
