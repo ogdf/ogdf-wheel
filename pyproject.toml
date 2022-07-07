@@ -10,7 +10,8 @@ requires-python = ">=3.7"
 # dependencies = ["matplotlib", "annoy ~= 1.17.0"]
 
 [tool.cibuildwheel]
-build = ["cp39-*"]
+# ignore-vcs = true
+build = ["cp310-*"]
 # Skip 32-bit builds, musl build, and pypy builds
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux_*", "*pypy*"]
 manylinux-x86_64-image = "manylinux_2_28" # manylinux2014 uses a too old gcc (wlav/cppyy#70)
@@ -25,11 +26,13 @@ test-command = [
 # include = ["/ogdf"]
 
 [tool.hatch.build.targets.wheel]
+# TODO make script that checks contents of results
 artifacts = ["*.so", "*.dll", "*.lib"]
-exclude = ["hatch_build.py"]
+exclude = ["hatch_build.py", "install"]
 
 [tool.hatch.build.targets.wheel.shared-data]
 "install" = "/"
+# windows uses sources = ["install/bin", "install/include"] instead, set by hatch_build.py
 
 [tool.hatch.build.targets.wheel.hooks.custom]
 # path = "/hatch_build.py"

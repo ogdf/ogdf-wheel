@@ -1,6 +1,8 @@
 *.svg
 cmake_build/
 wheelhouse/
+.vs/
+install/
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,c++,cmake
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,c++,cmake
@@ -72,7 +74,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+/lib/
 lib64/
 parts/
 sdist/

@@ -37,6 +37,8 @@ class CustomBuildHook(BuildHookInterface):
 
         Any modifications to the build data will be seen by the build target.
         """
+        pprint(build_data)
+        pprint(self.build_config.__dict__)
         build_data["pure_python"] = False
         plat = os.getenv("AUDITWHEEL_PLAT", None)
         if not plat:
@@ -48,13 +50,19 @@ class CustomBuildHook(BuildHookInterface):
         build_data["tag"] = "py3-none-%s" % plat.replace("-", "_")
         print("Set wheel tag to", build_data["tag"])
 
+        if "win" in build_data["tag"]:
+            self.build_config.target_config["sources"] = ["install/bin", "install/include"]
+            del self.build_config.target_config["shared-data"]
+        pprint(build_data)
+        pprint(self.build_config.__dict__)
+
         # disable march=native optimizations (including SSE3)
         if os.environ.get("CIBUILDWHEEL", "0") == "1":
             comp_spec_cmake = self.ogdf_src_dir / "cmake" / "compiler-specifics.cmake"
             with open(comp_spec_cmake , "rt") as f:
                 lines = f.readlines()
             with open(comp_spec_cmake , "wt") as f:
-                f.writelines("# " + l if "march=native" in l else l for l in lines)
+                f.writelines("# " + l if "march=native" in l and not l.strip().startswith("#") else l for l in lines)
 
         flags = [
             "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
