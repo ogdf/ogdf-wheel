@@ -1,4 +1,5 @@
 from ogdf_python import ogdf, cppinclude
+from pathlib import Path
 
 def disown(obj):
     obj.__python_owns__ = False
@@ -6,7 +7,7 @@ def disown(obj):
 
 def call_layout(GA, L):
     L.call(GA)
-    ogdf.GraphIO.drawSVG(GA, "%s.svg" % type(L).__name__)
+    ogdf.GraphIO.drawSVG(GA, str(Path(__file__).parent / ("%s.svg" % type(L).__name__)))
     bb = GA.boundingBox()
     assert bb.width() > 100, "%s x %s" % (bb.width(), bb.height())
     assert bb.height() > 100, "%s x %s" % (bb.width(), bb.height())
