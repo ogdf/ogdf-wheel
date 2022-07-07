@@ -13,6 +13,7 @@ requires-python = ">=3.7"
 build = ["cp39-*"]
 # Skip 32-bit builds, musl build, and pypy builds
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux_*", "*pypy*"]
+manylinux-x86_64-image = "manylinux_2_28" # manylinux2014 uses a too old gcc (wlav/cppyy#70)
 build-frontend = "build"
 test-command = [
   "pip install ogdf-python",
