@@ -15,6 +15,14 @@ except:
     cached_property = property
 
 
+def is_github_actions():
+    return os.getenv("GITHUB_ACTIONS", None) is "true"
+
+
+def is_cibuildhweel():
+    return os.environ.get("CIBUILDWHEEL", "0") == "1"
+
+
 def sync():
     sys.stdout.flush()
     sys.stderr.flush()
@@ -24,14 +32,18 @@ def sync():
 
 @contextmanager
 def group(*names):
-    print()
-    print(*names)
-    # print("::group::%s" % " ".join(map(str, names)))
+    if is_github_actions():
+        print("::group::%s" % " ".join(map(str, names)))
+    else:
+        print()
+        print(*names)
     sync()
     yield
     sync()
-    # print("::endgroup::")
-    print()
+    if is_github_actions():
+        print("::endgroup::")
+    else:
+        print()
 
 
 class CustomBuildHook(BuildHookInterface):
@@ -70,6 +82,9 @@ class CustomBuildHook(BuildHookInterface):
 
         Any modifications to the build data will be seen by the build target.
         """
+        if is_cibuildhweel() and is_github_actions():
+            print("::endgroup::")  # close the group from cibuildwheel
+
         build_data["pure_python"] = False
         plat = os.getenv("AUDITWHEEL_PLAT", None)
         if not plat:
@@ -87,7 +102,7 @@ class CustomBuildHook(BuildHookInterface):
             pprint(self.build_config.__dict__)
 
         # disable march=native optimizations (including SSE3)
-        if os.environ.get("CIBUILDWHEEL", "0") == "1":
+        if is_cibuildhweel():
             comp_spec_cmake = self.ogdf_src_dir / "cmake" / "compiler-specifics.cmake"
             with open(comp_spec_cmake, "rt") as f:
                 lines = f.readlines()
