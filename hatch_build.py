@@ -39,8 +39,13 @@ class CustomBuildHook(BuildHookInterface):
 
         Any modifications to the build data will be seen by the build target.
         """
+        print("self.directory", self.directory)
+        self.dump_files(self.directory)
+        print("self.root", self.root)
+        self.dump_files(self.root)
         # pprint(build_data)
         # pprint(self.build_config.__dict__)
+
         build_data["pure_python"] = False
         plat = os.getenv("AUDITWHEEL_PLAT", None)
         if not plat:
@@ -52,6 +57,7 @@ class CustomBuildHook(BuildHookInterface):
             del self.build_config.target_config["shared-data"]
         else:
             del self.build_config.target_config["sources"]
+
         pprint(build_data)
         pprint(self.build_config.__dict__)
 
@@ -76,6 +82,18 @@ class CustomBuildHook(BuildHookInterface):
         self.run("cmake", "--build", ".", "--config", "Release", *build_opts)
 
         self.run("cmake", "--install", ".")
+
+        print("self.directory", self.directory)
+        self.dump_files(self.directory)
+        print("self.root", self.root)
+        self.dump_files(self.root)
+
+    def dump_files(self, dir):
+        for dirpath, dirnames, filenames in os.walk(dir):
+            for file in filenames:
+                print(dirpath + "/" + file)
+            if not dirnames and not filenames:
+                print(dirpath, "(empty)")
 
     def finalize(self, version, build_data, artifact_path):
         """

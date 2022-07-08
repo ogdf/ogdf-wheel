@@ -27,7 +27,7 @@ test-command = [
 include = ["/ogdf"]
 
 [tool.hatch.build.targets.wheel]
-artifacts = ["*.so", "*.dll", "*.lib", "LICENSE*"]
+artifacts = ["*.so", "*.dll", "*.lib", "*.dylib", "!install", "LICENSE*"]
 exclude = ["hatch_build.py", "test_*.py", "install"]
 sources = ["install/bin", "install/include"] # windows, otherwise unset by hatch_build.py
 
