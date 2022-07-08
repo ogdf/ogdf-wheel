@@ -18,7 +18,6 @@ manylinux-x86_64-image = "manylinux_2_28" # manylinux2014 uses a too old gcc (wl
 build-frontend = "build"
 before-build = "pip debug --verbose"
 test-command = [
-    "python {project}/test_contents.py --name ogdf-wheel-2022.02 --ogdf {project}/ogdf --wheel {package}/*.whl",
     "pip install ogdf-python",
     "python -m ogdf_python.info",
     "python {project}/test_layouts.py",
@@ -30,7 +29,12 @@ include = ["/ogdf"]
 [tool.hatch.build.targets.wheel]
 artifacts = ["*.so", "*.dll", "*.lib", "*.dylib", "!install", "LICENSE*"]
 exclude = ["hatch_build.py", "test_*.py", "install"]
-sources = ["install/bin", "install/include", "install/lib", "install/share"] # windows, otherwise unset by hatch_build.py
+
+[tool.hatch.build.targets.wheel.sources] # windows, otherwise unset by hatch_build.py
+"install/bin" = "/"
+"install/include" = "/"
+"install/lib" = "/"
+"install/share" = "/"
 
 [tool.hatch.build.targets.wheel.shared-data] # unix, otherwise unset by hatch_build.py
 "install" = "/"
