@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import sysconfig
+from contextlib import contextmanager
 from pathlib import Path
 from pprint import pprint
 
@@ -12,6 +13,25 @@ try:
     from functools import cached_property
 except:
     cached_property = property
+
+
+def sync():
+    sys.stdout.flush()
+    sys.stderr.flush()
+    if hasattr(os, "sync"):
+        os.sync()
+
+
+@contextmanager
+def group(*names):
+    print()
+    print(*names)
+    # print("::group::%s" % " ".join(map(str, names)))
+    sync()
+    yield
+    sync()
+    # print("::endgroup::")
+    print()
 
 
 class CustomBuildHook(BuildHookInterface):
@@ -32,12 +52,17 @@ class CustomBuildHook(BuildHookInterface):
         return Path(self.root) / "ogdf"
 
     def run(self, *args):
-        sys.stdout.flush()
-        sys.stderr.flush()
-        ret = subprocess.run(list(map(str, args)), capture_output=False, check=True, cwd=self.cmake_build_dir)
-        sys.stdout.flush()
-        sys.stderr.flush()
-        return ret
+        args = list(map(str, args))
+        with group("Running", *args):
+            return subprocess.run(args, capture_output=False, check=True, cwd=self.cmake_build_dir)
+
+    def dump_files(self, dir):
+        with group("Index of", dir):
+            for dirpath, dirnames, filenames in os.walk(dir):
+                for file in filenames:
+                    print(dirpath + "/" + file)
+                if not dirnames and not filenames:
+                    print(dirpath, "(empty)")
 
     def initialize(self, version, build_data):
         """
@@ -45,13 +70,6 @@ class CustomBuildHook(BuildHookInterface):
 
         Any modifications to the build data will be seen by the build target.
         """
-        print("self.directory", self.directory)
-        self.dump_files(self.directory)
-        print("self.root", self.root)
-        self.dump_files(self.root)
-        # pprint(build_data)
-        # pprint(self.build_config.__dict__)
-
         build_data["pure_python"] = False
         plat = os.getenv("AUDITWHEEL_PLAT", None)
         if not plat:
@@ -64,8 +82,9 @@ class CustomBuildHook(BuildHookInterface):
         else:
             del self.build_config.target_config["sources"]
 
-        pprint(build_data)
-        pprint(self.build_config.__dict__)
+        with group("Config"):
+            pprint(build_data)
+            pprint(self.build_config.__dict__)
 
         # disable march=native optimizations (including SSE3)
         if os.environ.get("CIBUILDWHEEL", "0") == "1":
@@ -81,6 +100,9 @@ class CustomBuildHook(BuildHookInterface):
         ]
         self.run("cmake", self.ogdf_src_dir, *flags)
 
+        # import IPython
+        # IPython.embed()
+
         # windows needs Release config repeated but no parallel
         build_opts = []
         if "win" not in build_data["tag"]:
@@ -89,21 +111,8 @@ class CustomBuildHook(BuildHookInterface):
 
         self.run("cmake", "--install", ".")
 
-        print("self.directory", self.directory)
         self.dump_files(self.directory)
-        print("self.root", self.root)
         self.dump_files(self.root)
-
-    def dump_files(self, dir):
-        sys.stdout.flush()
-        sys.stderr.flush()
-        for dirpath, dirnames, filenames in os.walk(dir):
-            for file in filenames:
-                print(dirpath + "/" + file)
-            if not dirnames and not filenames:
-                print(dirpath, "(empty)")
-        sys.stdout.flush()
-        sys.stderr.flush()
 
     def finalize(self, version, build_data, artifact_path):
         """
@@ -112,10 +121,10 @@ class CustomBuildHook(BuildHookInterface):
 
         The build data will reflect any modifications done by the target during the build.
         """
-        from zipfile import ZipFile
-        print(version, build_data, artifact_path, self.__dict__)
-        with ZipFile(artifact_path) as zip:
-            print(zip.read(self.target_name + ".dist-info/RECORD").decode("ascii"))
+        with group("Wheel files RECORD"):
+            from zipfile import ZipFile
+            with ZipFile(artifact_path) as zip:
+                print(zip.read(self.build_config.builder.project_id + ".dist-info/RECORD").decode("ascii"))
 
     def clean(self, versions):
         """
@@ -123,5 +132,6 @@ class CustomBuildHook(BuildHookInterface):
         the [`build`](../cli/reference.md#hatch-build) command, or when invoking
         the [`clean`](../cli/reference.md#hatch-clean) command.
         """
-        # print(self.run("make", "clean"))
-        pass
+        import shutil
+        shutil.rmtree(self.cmake_build_dir)
+        shutil.rmtree(self.cmake_install_dir)
