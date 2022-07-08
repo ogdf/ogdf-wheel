@@ -23,6 +23,7 @@ jobs:
           output-dir: ./wheelhouse
 
       - uses: actions/upload-artifact@v3
+        if: always()
         with:
           name: wheels
           path: ./wheelhouse/*.whl
