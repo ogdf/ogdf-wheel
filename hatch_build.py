@@ -1,15 +1,17 @@
-from hatchling.builders.hooks.plugin.interface import BuildHookInterface
-from pprint import pprint
-import subprocess
-from pathlib import Path
 import multiprocessing
-import sys
 import os
+import subprocess
 import sysconfig
+from pathlib import Path
+from pprint import pprint
+
+from hatchling.builders.hooks.plugin.interface import BuildHookInterface
+
 try:
     from functools import cached_property
 except:
     cached_property = property
+
 
 class CustomBuildHook(BuildHookInterface):
     @cached_property
@@ -29,7 +31,7 @@ class CustomBuildHook(BuildHookInterface):
         return Path(self.root) / "ogdf"
 
     def run(self, *args):
-        return subprocess.run(map(str, args), capture_output=False, check=True, cwd=self.cmake_build_dir)
+        return subprocess.run(list(map(str, args)), capture_output=False, check=True, cwd=self.cmake_build_dir)
 
     def initialize(self, version, build_data):
         """
@@ -51,17 +53,18 @@ class CustomBuildHook(BuildHookInterface):
         print("Set wheel tag to", build_data["tag"])
 
         if "win" in build_data["tag"]:
-            self.build_config.target_config["sources"] = ["install/bin", "install/include"]
             del self.build_config.target_config["shared-data"]
+        else:
+            del self.build_config.target_config["sources"]
         pprint(build_data)
         pprint(self.build_config.__dict__)
 
         # disable march=native optimizations (including SSE3)
         if os.environ.get("CIBUILDWHEEL", "0") == "1":
             comp_spec_cmake = self.ogdf_src_dir / "cmake" / "compiler-specifics.cmake"
-            with open(comp_spec_cmake , "rt") as f:
+            with open(comp_spec_cmake, "rt") as f:
                 lines = f.readlines()
-            with open(comp_spec_cmake , "wt") as f:
+            with open(comp_spec_cmake, "wt") as f:
                 f.writelines("# " + l if "march=native" in l and not l.strip().startswith("#") else l for l in lines)
 
         flags = [
@@ -75,7 +78,7 @@ class CustomBuildHook(BuildHookInterface):
         if "win" not in build_data["tag"]:
             build_opts = ["--parallel", str(multiprocessing.cpu_count())]
         self.run("cmake", "--build", ".", "--config", "Release", *build_opts)
-        
+
         self.run("cmake", "--install", ".")
 
     def finalize(self, version, build_data, artifact_path):
