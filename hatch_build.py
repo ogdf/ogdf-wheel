@@ -45,7 +45,7 @@ class CustomBuildHook(BuildHookInterface):
         plat = os.getenv("AUDITWHEEL_PLAT", None)
         if not plat:
             plat = sysconfig.get_platform()
-        build_data["tag"] = "py3-none-%s" % plat.replace("-", "_")
+        build_data["tag"] = "py3-none-%s" % plat.replace("-", "_").replace(".", "_")
         print("Set wheel tag to", build_data["tag"])
 
         if "win" in build_data["tag"]:
