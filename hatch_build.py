@@ -1,6 +1,7 @@
 import multiprocessing
 import os
 import subprocess
+import sys
 import sysconfig
 from pathlib import Path
 from pprint import pprint
@@ -31,7 +32,12 @@ class CustomBuildHook(BuildHookInterface):
         return Path(self.root) / "ogdf"
 
     def run(self, *args):
-        return subprocess.run(list(map(str, args)), capture_output=False, check=True, cwd=self.cmake_build_dir)
+        sys.stdout.flush()
+        sys.stderr.flush()
+        ret = subprocess.run(list(map(str, args)), capture_output=False, check=True, cwd=self.cmake_build_dir)
+        sys.stdout.flush()
+        sys.stderr.flush()
+        return ret
 
     def initialize(self, version, build_data):
         """
@@ -89,11 +95,15 @@ class CustomBuildHook(BuildHookInterface):
         self.dump_files(self.root)
 
     def dump_files(self, dir):
+        sys.stdout.flush()
+        sys.stderr.flush()
         for dirpath, dirnames, filenames in os.walk(dir):
             for file in filenames:
                 print(dirpath + "/" + file)
             if not dirnames and not filenames:
                 print(dirpath, "(empty)")
+        sys.stdout.flush()
+        sys.stderr.flush()
 
     def finalize(self, version, build_data, artifact_path):
         """
