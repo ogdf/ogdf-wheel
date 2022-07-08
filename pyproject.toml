@@ -4,6 +4,12 @@ description = "An OGDF release build packaged as ready-to-use python wheel."
 version = "2022.02"
 classifiers = ["Programming Language :: Python :: 3"]
 requires-python = ">=3.7"
+license-files = { paths = [
+    "ogdf/LICENSE.txt",
+    "ogdf/LICENSE_GPL_v2.txt",
+    "ogdf/LICENSE_GPL_v3.txt",
+    "ogdf/include/ogdf/lib/minisat/LICENSE",
+] }
 # readme = "README.md"
 # keywords = ["one", "two"]
 # license = { text = "BSD 3-Clause License" }
@@ -23,14 +29,14 @@ test-command = [
 ]
 
 [tool.hatch.build]
-ignore-vcs = true
+ignore-vcs = true # "install" may not be excluded, otherwise weird things happen
 
 [tool.hatch.build.targets.sdist]
-include = ["/ogdf"]
+exclude = ["cmake_build", "dist", "wheelhouse", ".git*", ".idea"]
 
 [tool.hatch.build.targets.wheel]
-artifacts = ["*.so", "*.dll", "*.lib", "*.dylib", "!install", "LICENSE*"]
-exclude = ["hatch_build.py", "test_*.py", "install"]
+exclude = ["cmake_build", "dist", "wheelhouse", ".git*",
+    "hatch_build.py", "test_*.py"]
 
 [tool.hatch.build.targets.wheel.sources] # windows, otherwise unset by hatch_build.py
 "install/bin" = "/"
@@ -45,5 +51,5 @@ exclude = ["hatch_build.py", "test_*.py", "install"]
 # path = "/hatch_build.py"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling"]#, "ipython"]
 build-backend = "hatchling.build"

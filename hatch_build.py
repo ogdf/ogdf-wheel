@@ -16,7 +16,7 @@ except:
 
 
 def is_github_actions():
-    return os.getenv("GITHUB_ACTIONS", None) is "true"
+    return os.getenv("GITHUB_ACTIONS", None) == "true"
 
 
 def is_cibuildhweel():

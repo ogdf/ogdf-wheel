@@ -3,9 +3,6 @@ cmake_build/
 wheelhouse/
 .vs/
 install/
-#!/ogdf/include/ogdf/lib/
-#!/ogdf/src/ogdf/lib/
-#!/install/lib/
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,c++,cmake
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,c++,cmake
@@ -77,11 +74,11 @@ dist/
 downloads/
 eggs/
 .eggs/
-#lib/
-#lib64/
+lib/
+lib64/
 parts/
 sdist/
-#var/
+var/
 wheels/
 share/python-wheels/
 *.egg-info/

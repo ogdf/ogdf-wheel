@@ -27,3 +27,57 @@ jobs:
         with:
           name: wheels
           path: ./wheelhouse/*.whl
+
+  check_contents:
+    name: Check wheel contents
+    needs: build_wheels
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download wheels
+        uses: actions/download-artifact@v3
+        with:
+          name: wheels
+          path: dist
+
+      - name: Build sdist
+        run: python -m build --sdist
+
+      - name: Test packages
+        run: |
+          python test_contents.py
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: pkgs
+          path: ./dist
+
+  test:
+    name: Test on ${{ matrix.os }}
+    needs: build_wheels
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, windows-2019, macos-10.15]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download wheels
+        uses: actions/download-artifact@v3
+        with:
+          name: wheels
+          path: dist
+
+      - name: Install wheel
+        run: pip install --no-index --find-links ./dist ogdf-wheel
+
+      - name: Install and test ogdf-python
+        run: |
+          pip install ogdf-python
+          python -m ogdf_python.info
+          python test_layouts.py
