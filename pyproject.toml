@@ -19,6 +19,7 @@ license-files = { paths = [
 build = ["cp310-*"]
 # Skip 32-bit builds, musl build, and pypy builds
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux_*", "*pypy*"]
+environment-pass = ["GITHUB_ACTIONS"]
 manylinux-x86_64-image = "manylinux_2_28" # manylinux2014 uses a too old gcc (wlav/cppyy#70)
 build-frontend = "build"
 before-build = "pip debug --verbose"
@@ -32,19 +33,13 @@ test-command = [
 ignore-vcs = true # "install" may not be excluded, otherwise weird things happen
 
 [tool.hatch.build.targets.sdist]
-exclude = ["cmake_build", "dist", "wheelhouse", ".git*", ".idea"]
+exclude = ["cmake_build", "dist", "wheelhouse", ".git*"]
 
 [tool.hatch.build.targets.wheel]
 exclude = ["cmake_build", "dist", "wheelhouse", ".git*",
     "hatch_build.py", "test_*.py"]
 
-[tool.hatch.build.targets.wheel.sources] # windows, otherwise unset by hatch_build.py
-"install/bin" = "/"
-"install/include" = "/"
-"install/lib" = "/"
-"install/share" = "/"
-
-[tool.hatch.build.targets.wheel.shared-data] # unix, otherwise unset by hatch_build.py
+[tool.hatch.build.targets.wheel.shared-data]
 "install" = "/"
 
 [tool.hatch.build.targets.wheel.hooks.custom]

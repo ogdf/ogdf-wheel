@@ -92,11 +92,6 @@ class CustomBuildHook(BuildHookInterface):
         build_data["tag"] = "py3-none-%s" % plat.replace("-", "_").replace(".", "_")
         print("Set wheel tag to", build_data["tag"])
 
-        if "win" in build_data["tag"]:
-            del self.build_config.target_config["shared-data"]
-        else:
-            del self.build_config.target_config["sources"]
-
         with group("Config"):
             pprint(build_data)
             pprint(self.build_config.__dict__)
@@ -113,6 +108,10 @@ class CustomBuildHook(BuildHookInterface):
             "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
             "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path", "-DMACOSX_RPATH=TRUE",
         ]
+        if "win" in build_data["tag"]:
+            # ensure dll and headers are installed directly in PATH
+            flags.extend(["-DOGDF_INSTALL_BIN_DIR=%s" % self.cmake_install_dir, "-DOGDF_INSTALL_INCLUDE_DIR=%s" % self.cmake_install_dir,
+                          "-DCOIN_INSTALL_BIN_DIR=%s" % self.cmake_install_dir, "-DCOIN_INSTALL_INCLUDE_DIR=%s" % self.cmake_install_dir, ])
         self.run("cmake", self.ogdf_src_dir, *flags)
 
         # import IPython
