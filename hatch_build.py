@@ -39,16 +39,12 @@ class CustomBuildHook(BuildHookInterface):
 
         Any modifications to the build data will be seen by the build target.
         """
-        pprint(build_data)
-        pprint(self.build_config.__dict__)
+        # pprint(build_data)
+        # pprint(self.build_config.__dict__)
         build_data["pure_python"] = False
         plat = os.getenv("AUDITWHEEL_PLAT", None)
         if not plat:
             plat = sysconfig.get_platform()
-            # strip version from macosx-10.9-x86_64
-            if "macos" in plat:
-                plats = plat.split("-")
-                plat = "%s-%s" % (plats[0], plats[-1])
         build_data["tag"] = "py3-none-%s" % plat.replace("-", "_")
         print("Set wheel tag to", build_data["tag"])
 
