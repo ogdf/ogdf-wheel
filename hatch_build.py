@@ -112,7 +112,10 @@ class CustomBuildHook(BuildHookInterface):
 
         The build data will reflect any modifications done by the target during the build.
         """
-        pass
+        from zipfile import ZipFile
+        print(version, build_data, artifact_path, self.__dict__)
+        with ZipFile(artifact_path) as zip:
+            print(zip.read(self.target_name + ".dist-info/RECORD").decode("ascii"))
 
     def clean(self, versions):
         """
