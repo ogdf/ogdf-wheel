@@ -27,8 +27,3 @@ jobs:
         with:
           name: wheels
           path: ./wheelhouse/*.whl
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: svgs-${{ matrix.os }}
-          path: ./*.svg
