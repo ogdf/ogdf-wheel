@@ -6,6 +6,7 @@ import sysconfig
 from contextlib import contextmanager
 from pathlib import Path
 from pprint import pprint
+import platform
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
@@ -22,6 +23,9 @@ def is_github_actions():
 def is_cibuildhweel():
     return os.environ.get("CIBUILDWHEEL", "0") == "1"
 
+
+def is_windows():
+    return platform.system() == "Windows"
 
 def sync():
     sys.stdout.flush()
@@ -48,6 +52,13 @@ def group(*names):
 
 class CustomBuildHook(BuildHookInterface):
     @cached_property
+    def tag(self):
+        plat = os.getenv("AUDITWHEEL_PLAT", None)
+        if not plat:
+            plat = sysconfig.get_platform()
+        return "py3-none-%s" % plat.replace("-", "_").replace(".", "_")
+
+    @cached_property
     def cmake_build_dir(self):
         p = Path(self.directory) / "cmake_build"
         p.mkdir(parents=True, exist_ok=True)
@@ -55,7 +66,10 @@ class CustomBuildHook(BuildHookInterface):
 
     @cached_property
     def cmake_install_dir(self):
-        p = Path(self.root) / "install"
+        if is_windows():
+            p = Path(self.root) / "ogdf_wheel" / "install"
+        else:
+            p = Path(self.root) / "install"
         p.mkdir(parents=True, exist_ok=True)
         return p
 
@@ -86,11 +100,11 @@ class CustomBuildHook(BuildHookInterface):
             print("::endgroup::")  # close the group from cibuildwheel
 
         build_data["pure_python"] = False
-        plat = os.getenv("AUDITWHEEL_PLAT", None)
-        if not plat:
-            plat = sysconfig.get_platform()
-        build_data["tag"] = "py3-none-%s" % plat.replace("-", "_").replace(".", "_")
+        build_data["tag"] = self.tag
         print("Set wheel tag to", build_data["tag"])
+
+        if is_windows():
+            del self.build_config.target_config["shared-data"]
 
         with group("Config"):
             pprint(build_data)
@@ -108,10 +122,6 @@ class CustomBuildHook(BuildHookInterface):
             "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
             "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path", "-DMACOSX_RPATH=TRUE",
         ]
-        if "win" in build_data["tag"]:
-            # ensure dll and headers are installed directly in PATH
-            flags.extend(["-DOGDF_INSTALL_BIN_DIR=%s" % self.cmake_install_dir, "-DOGDF_INSTALL_INCLUDE_DIR=%s" % self.cmake_install_dir,
-                          "-DCOIN_INSTALL_BIN_DIR=%s" % self.cmake_install_dir, "-DCOIN_INSTALL_INCLUDE_DIR=%s" % self.cmake_install_dir, ])
         self.run("cmake", self.ogdf_src_dir, *flags)
 
         # import IPython
@@ -119,7 +129,7 @@ class CustomBuildHook(BuildHookInterface):
 
         # windows needs Release config repeated but no parallel
         build_opts = []
-        if "win" not in build_data["tag"]:
+        if not is_windows():
             build_opts = ["--parallel", str(multiprocessing.cpu_count())]
         self.run("cmake", "--build", ".", "--config", "Release", *build_opts)
 
