@@ -1,12 +1,12 @@
 import multiprocessing
 import os
+import platform
 import subprocess
 import sys
 import sysconfig
 from contextlib import contextmanager
 from pathlib import Path
 from pprint import pprint
-import platform
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
@@ -26,6 +26,7 @@ def is_cibuildhweel():
 
 def is_windows():
     return platform.system() == "Windows"
+
 
 def sync():
     sys.stdout.flush()

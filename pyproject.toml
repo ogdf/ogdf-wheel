@@ -24,7 +24,7 @@ manylinux-x86_64-image = "manylinux_2_28" # manylinux2014 uses a too old gcc (wl
 build-frontend = "build"
 before-build = "pip debug --verbose"
 test-command = [
-    "pip install ogdf-python",
+    "pip install git+https://github.com/N-Coder/ogdf-python.git",
     "python -m ogdf_python.info",
     "python {project}/test_layouts.py",
 ]
@@ -40,6 +40,7 @@ exclude = ["cmake_build", "dist", "wheelhouse", ".git*",
     "hatch_build.py", "test_*.py"]
 
 [tool.hatch.build.targets.wheel.shared-data]
+# removed by hatch_build.py on windows
 "install" = "/"
 
 [tool.hatch.build.targets.wheel.hooks.custom]
