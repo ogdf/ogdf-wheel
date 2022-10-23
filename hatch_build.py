@@ -68,7 +68,7 @@ class CustomBuildHook(BuildHookInterface):
     @cached_property
     def cmake_install_dir(self):
         if is_windows():
-            p = Path(self.root) / "ogdf_wheel" / "install"
+            p = Path(self.root) / "src" / "ogdf_wheel" / "install"
         else:
             p = Path(self.root) / "install"
         p.mkdir(parents=True, exist_ok=True)
