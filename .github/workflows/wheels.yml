@@ -112,4 +112,4 @@ jobs:
         if: always()
         with:
           name: svgs-${{ matrix.os }}
-          path: ./wheelhouse/*.whl
+          path: ./*.svg
