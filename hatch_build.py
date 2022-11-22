@@ -112,7 +112,7 @@ class CustomBuildHook(BuildHookInterface):
             pprint(self.build_config.__dict__)
 
         # disable march=native optimizations (including SSE3)
-        if is_cibuildhweel():
+        if is_cibuildwheel():
             comp_spec_cmake = self.ogdf_src_dir / "cmake" / "compiler-specifics.cmake"
             with open(comp_spec_cmake, "rt") as f:
                 lines = f.readlines()
