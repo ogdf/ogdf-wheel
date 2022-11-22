@@ -1,0 +1,1 @@
+# TODO get_install_path entry point yielding value for OGDF_INSTALL_DIR
