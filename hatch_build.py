@@ -20,7 +20,7 @@ def is_github_actions():
     return os.getenv("GITHUB_ACTIONS", None) == "true"
 
 
-def is_cibuildhweel():
+def is_cibuildwheel():
     return os.environ.get("CIBUILDWHEEL", "0") == "1"
 
 
@@ -97,7 +97,7 @@ class CustomBuildHook(BuildHookInterface):
 
         Any modifications to the build data will be seen by the build target.
         """
-        if is_cibuildhweel() and is_github_actions():
+        if is_cibuildwheel() and is_github_actions():
             print("::endgroup::")  # close the group from cibuildwheel
 
         build_data["pure_python"] = False
