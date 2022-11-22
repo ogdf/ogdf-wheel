@@ -103,7 +103,7 @@ jobs:
         run: pip install git+https://github.com/N-Coder/ogdf-python.git
 
       - name: Get ogdf-python info
-        run: python -m ogdf_python.info
+        run: python -m ogdf_python
 
       - name: Test ogdf-python layouts
         run: python test_layouts.py
