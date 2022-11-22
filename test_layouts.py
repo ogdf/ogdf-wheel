@@ -52,10 +52,11 @@ def test_layouts():
     call_layout(GA, SL)
 
     for v in G.nodes:
-        GA.x[v] = GA.y[v] = 0
+        GA.x[v] /= 100  # SpringEmbedderFRExact needs some initial layout
+        GA.y[v] /= 100
 
     sefr = ogdf.SpringEmbedderFRExact()
-    sefr.idealEdgeLength(200)
+    sefr.idealEdgeLength(200.0)
     call_layout(GA, sefr)
 
     for v in G.nodes:
