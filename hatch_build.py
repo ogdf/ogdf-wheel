@@ -120,7 +120,10 @@ class CustomBuildHook(BuildHookInterface):
                 f.writelines("# " + l if "march=native" in l and not l.strip().startswith("#") else l for l in lines)
 
         flags = [
-            "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
+            "-DCMAKE_BUILD_TYPE=Debug", "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
+            "-DOGDF_USE_ASSERT_EXCEPTIONS=ON", "-DOGDF_USE_ASSERT_EXCEPTIONS_WITH=ON_LIBUNWIND",
+            "-DOGDF_MEMORY_MANAGER=MALLOC_TS", "-DOGDF_LEAK_CHECK=ON",
+            "-DOGDF_WARNING_ERRORS=OFF",
             "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path", "-DMACOSX_RPATH=TRUE",
         ]
         self.run("cmake", self.ogdf_src_dir, *flags)
