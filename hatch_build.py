@@ -139,7 +139,7 @@ class CustomBuildHook(BuildHookInterface):
             build_opts = ["--parallel", str(multiprocessing.cpu_count())]
         self.run("cmake", "--build", ".", "--config", CONFIG, *build_opts)
 
-        self.run("cmake", "--install", ".")
+        self.run("cmake", "--install", ".", "--config", CONFIG)
 
         self.dump_files(self.directory)
         self.dump_files(self.root)
