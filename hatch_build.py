@@ -119,9 +119,10 @@ class CustomBuildHook(BuildHookInterface):
             with open(comp_spec_cmake, "wt") as f:
                 f.writelines("# " + l if "march=native" in l and not l.strip().startswith("#") else l for l in lines)
 
+        CONFIG = "Debug"
         flags = [
-            "-DCMAKE_BUILD_TYPE=Debug", "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
-            "-DOGDF_USE_ASSERT_EXCEPTIONS=ON", # "-DOGDF_USE_ASSERT_EXCEPTIONS_WITH=ON_LIBUNWIND",
+            "-DCMAKE_BUILD_TYPE=" + CONFIG, "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
+            "-DOGDF_USE_ASSERT_EXCEPTIONS=ON",  # "-DOGDF_USE_ASSERT_EXCEPTIONS_WITH=ON_LIBUNWIND",
             "-DOGDF_MEMORY_MANAGER=POOL_TS"
             # "-DOGDF_MEMORY_MANAGER=MALLOC_TS", "-DOGDF_LEAK_CHECK=ON",
             "-DOGDF_WARNING_ERRORS=OFF",
@@ -132,11 +133,11 @@ class CustomBuildHook(BuildHookInterface):
         # import IPython
         # IPython.embed()
 
-        # windows needs Release config repeated but no parallel
+        # windows needs config repeated but no parallel
         build_opts = []
         if not is_windows():
             build_opts = ["--parallel", str(multiprocessing.cpu_count())]
-        self.run("cmake", "--build", ".", "--config", "Release", *build_opts)
+        self.run("cmake", "--build", ".", "--config", CONFIG, *build_opts)
 
         self.run("cmake", "--install", ".")
 
