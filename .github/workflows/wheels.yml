@@ -16,6 +16,10 @@ jobs:
         with:
           submodules: 'recursive'
 
+      - name: Patch ogdf::Array on Windows
+        if: runner.os == 'Windows'
+        run: git --git-dir ogdf apply --directory ogdf fix_Array_windows.patch
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.7.0
         with:
@@ -35,6 +39,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
 
       - name: Download wheels
         uses: actions/download-artifact@v3

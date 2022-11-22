@@ -1,0 +1,218 @@
+Index: include/ogdf/basic/Array2D.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/include/ogdf/basic/Array2D.h b/include/ogdf/basic/Array2D.h
+--- a/include/ogdf/basic/Array2D.h	(revision 7596a518d2b8a964523c2bbd86af360aa405c6cf)
++++ b/include/ogdf/basic/Array2D.h	(date 1669110068224)
+@@ -197,10 +197,11 @@
+ 	void copy(const Array2D<E> &array2);
+ };
+ 
++}
+ 
+ //! Constructs the array with index set [\p a, ..., \p b]*[\p c, ..., \p d].
+ template<class E>
+-void Array2D<E>::construct(int a, int b, int c, int d)
++void ogdf::Array2D<E>::construct(int a, int b, int c, int d)
+ {
+ 	m_a = a;
+ 	m_b = b;
+@@ -227,7 +228,7 @@
+ 
+ //! Initializes the array with default constructor of \a E.
+ template<class E>
+-void Array2D<E>::initialize()
++void ogdf::Array2D<E>::initialize()
+ {
+ 	E *pDest = m_pStart;
+ 	try {
+@@ -244,7 +245,7 @@
+ 
+ //! Initializes the array with \p x.
+ template<class E>
+-void Array2D<E>::initialize(const E &x)
++void ogdf::Array2D<E>::initialize(const E &x)
+ {
+ 	E *pDest = m_pStart;
+ 	try {
+@@ -261,7 +262,7 @@
+ 
+ //! Call destructor of all elements.
+ template<class E>
+-void Array2D<E>::deconstruct()
++void ogdf::Array2D<E>::deconstruct()
+ {
+ 	if (!std::is_trivially_destructible<E>::value) {
+ 		for (E *pDest = m_pStart; pDest < m_pStop; pDest++)
+@@ -272,7 +273,7 @@
+ 
+ //! Copy \p array2.
+ template<class E>
+-void Array2D<E>::copy(const Array2D<E> &array2)
++void ogdf::Array2D<E>::copy(const ogdf::Array2D<E> &array2)
+ {
+ 	construct(array2.m_a, array2.m_b, array2.m_c, array2.m_d);
+ 
+@@ -287,7 +288,7 @@
+ 
+ //! Computes the determinant via row expansion.
+ template<class E>
+-float Array2D<E>::det() const
++float ogdf::Array2D<E>::det() const
+ {
+ 	// matrix must be quadratic
+ 	OGDF_ASSERT(size1() == size2());
+@@ -315,7 +316,7 @@
+ 
+ 		// Expanding along the first row (Laplace's Formula)
+ 	default:
+-		Array2D<E> remMatrix(0, n-2, 0, n-2);             // the remaining matrix
++		ogdf::Array2D<E> remMatrix(0, n-2, 0, n-2);             // the remaining matrix
+ 		for(column = c; column <= d; column++) {
+ 			int rem_i = 0;
+ 			int rem_j = 0;
+@@ -340,4 +341,3 @@
+ 	return determinant;
+ }
+ 
+-}
+Index: include/ogdf/basic/Array.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/include/ogdf/basic/Array.h b/include/ogdf/basic/Array.h
+--- a/include/ogdf/basic/Array.h	(revision 7596a518d2b8a964523c2bbd86af360aa405c6cf)
++++ b/include/ogdf/basic/Array.h	(date 1669110428195)
+@@ -772,9 +772,11 @@
+ 	OGDF_NEW_DELETE
+ };
+ 
++}
++
+ // enlarges storage for array and moves old entries
+ template<class E, class INDEX>
+-void Array<E, INDEX>::expandArray(INDEX add)
++void ogdf::Array<E, INDEX>::expandArray(INDEX add)
+ {
+ 	INDEX sOld = size(), sNew = sOld + add;
+ 
+@@ -793,7 +795,7 @@
+ 
+ // enlarges array by add elements and sets new elements to x
+ template<class E, class INDEX>
+-void Array<E,INDEX>::grow(INDEX add, const E &x)
++void ogdf::Array<E,INDEX>::grow(INDEX add, const E &x)
+ {
+ 	if(add == 0) return;
+ 
+@@ -807,7 +809,7 @@
+ 
+ // enlarges array by add elements (initialized with default constructor)
+ template<class E, class INDEX>
+-void Array<E,INDEX>::grow(INDEX add)
++void ogdf::Array<E,INDEX>::grow(INDEX add)
+ {
+ 	if(add == 0) return;
+ 
+@@ -820,7 +822,7 @@
+ }
+ 
+ template<class E, class INDEX>
+-void Array<E,INDEX>::construct(INDEX a, INDEX b)
++void ogdf::Array<E,INDEX>::construct(INDEX a, INDEX b)
+ {
+ 	m_low = a; m_high = b;
+ 	INDEX s = b-a+1;
+@@ -839,7 +841,7 @@
+ 
+ 
+ template<class E, class INDEX>
+-void Array<E,INDEX>::initialize()
++void ogdf::Array<E,INDEX>::initialize()
+ {
+ 	E *pDest = m_pStart;
+ 	try {
+@@ -855,7 +857,7 @@
+ 
+ 
+ template<class E, class INDEX>
+-void Array<E,INDEX>::initialize(const E &x)
++void ogdf::Array<E,INDEX>::initialize(const E &x)
+ {
+ 	E *pDest = m_pStart;
+ 	try {
+@@ -871,7 +873,7 @@
+ 
+ 
+ template<class E, class INDEX>
+-void Array<E, INDEX>::initialize(std::initializer_list<E> initList)
++void ogdf::Array<E, INDEX>::initialize(std::initializer_list<E> initList)
+ {
+ 	E *pDest = m_pStart;
+ 	try {
+@@ -888,7 +890,7 @@
+ 
+ 
+ template<class E, class INDEX>
+-void Array<E,INDEX>::deconstruct()
++void ogdf::Array<E,INDEX>::deconstruct()
+ {
+ 	if (!std::is_trivially_destructible<E>::value) {
+ 		for (E *pDest = m_pStart; pDest < m_pStop; pDest++)
+@@ -899,7 +901,7 @@
+ 
+ 
+ template<class E, class INDEX>
+-void Array<E,INDEX>::copy(const Array<E,INDEX> &array2)
++void ogdf::Array<E,INDEX>::copy(const ogdf::Array<E,INDEX> &array2)
+ {
+ 	construct(array2.m_low, array2.m_high);
+ 
+@@ -918,7 +920,7 @@
+ // permutes array a from a[l] to a[r] randomly
+ template<class E, class INDEX>
+ template<class RNG>
+-void Array<E,INDEX>::permute (INDEX l, INDEX r, RNG &rng)
++void ogdf::Array<E,INDEX>::permute (INDEX l, INDEX r, RNG &rng)
+ {
+ 	OGDF_ASSERT(low() <= l);
+ 	OGDF_ASSERT(l <= high());
+@@ -933,9 +935,10 @@
+ }
+ 
+ 
++namespace ogdf{
+  //! Prints array \p a to output stream \p os using delimiter \p delim.
+ template<class E, class INDEX>
+-void print(std::ostream &os, const Array<E,INDEX> &a, char delim = ' ')
++void print(std::ostream &os, const ogdf::Array<E,INDEX> &a, char delim = ' ')
+ {
+ 	for (int i = a.low(); i <= a.high(); i++) {
+ 		if (i > a.low()) os << delim;
+@@ -956,11 +959,10 @@
+ 
+ #include <ogdf/basic/ArrayBuffer.h>
+ 
+-namespace ogdf {
+ 
+ //! shift all items up to the last element of \p ind to the left
+ template<class E, class INDEX>
+-void Array<E,INDEX>::leftShift(ArrayBuffer<INDEX, INDEX> &ind) {
++void ogdf::Array<E,INDEX>::leftShift(ogdf::ArrayBuffer<INDEX, INDEX> &ind) {
+ 	const INDEX nInd = ind.size();
+ 	if (nInd == 0) return;
+ 
+@@ -983,9 +985,7 @@
+ }
+ 
+ template<class E, class INDEX>
+-Array<E,INDEX>::Array(const ArrayBuffer<E, INDEX> &A) {
++ogdf::Array<E,INDEX>::Array(const ogdf::ArrayBuffer<E, INDEX> &A) {
+ 	construct(0,-1);
+ 	A.compactCopy(*this);
+ }
+-
+-}
