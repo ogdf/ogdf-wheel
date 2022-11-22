@@ -6,11 +6,18 @@ def disown(obj):
     return obj
 
 def call_layout(GA, L):
+    print("Calling", type(L).__name__)
     L.call(GA)
-    ogdf.GraphIO.drawSVG(GA, str(Path(__file__).parent / ("%s.svg" % type(L).__name__)))
+
+    out = Path(__file__).parent / ("%s.svg" % type(L).__name__)
+    print("Writing Drawing to", out)
+    ogdf.GraphIO.drawSVG(GA, str(out))
+
     bb = GA.boundingBox()
-    assert bb.width() > 100, "%s x %s" % (bb.width(), bb.height())
-    assert bb.height() > 100, "%s x %s" % (bb.width(), bb.height())
+    size = "%s x %s" % (bb.width(), bb.height())
+    print("Drawing size:", size)
+    assert bb.width() > 100, size
+    assert bb.height() > 100, size
 
 def test_layouts():
     cppinclude("ogdf/basic/graph_generators/randomized.h")
