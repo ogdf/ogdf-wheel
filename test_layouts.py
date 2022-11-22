@@ -51,17 +51,12 @@ def test_layouts():
     SL.setLayout(ohl)
     call_layout(GA, SL)
 
-    for v in G.nodes:
-        GA.x[v] /= 100  # SpringEmbedderFRExact needs some initial layout
-        GA.y[v] /= 100
-
+    GA.scale(0.01, False)  # make old drawing too small for assertion
     sefr = ogdf.SpringEmbedderFRExact()
     sefr.idealEdgeLength(200.0)
     call_layout(GA, sefr)
 
-    for v in G.nodes:
-        GA.x[v] = GA.y[v] = 0
-
+    GA.scale(0.01, False)
     fmmm = ogdf.FMMMLayout()
     fmmm.useHighLevelOptions(True)
     fmmm.unitEdgeLength(50.0)
