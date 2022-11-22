@@ -3,7 +3,9 @@ import os
 import re
 import tarfile
 from collections import defaultdict
+from functools import partial
 from pathlib import Path
+from textwrap import indent
 from zipfile import ZipFile
 
 
@@ -49,13 +51,21 @@ def diff_dicts(a, b):
     return dict(sorted(a - b)), dict(sorted(b - a))
 
 
+def diff_dict_keys(a, b):
+    A, B = set(a.keys()), set(b.keys())
+    return {k: a[k] for k in sorted(A - B)}, {k: b[k] for k in sorted(B - A)}
+
+
 issues = 0
 
 
-def check_diff(tag, actual, expected, ign_a="", ign_e="", exp_a=[]):
+def check_diff(tag, actual, expected, ign_a="", ign_e="", exp_a=[], win=False):
     global issues
     print("\tChecking", tag)
-    actual, expected = diff_dicts(actual, expected)
+    if win:
+        actual, expected = diff_dict_keys(actual, expected)
+    else:
+        actual, expected = diff_dicts(actual, expected)
     for e in exp_a:
         if e not in actual:
             print("\tMissing file %s in %s!" % (e, tag))
@@ -63,7 +73,7 @@ def check_diff(tag, actual, expected, ign_a="", ign_e="", exp_a=[]):
     sup = {k: v for k, v in actual.items() if not re.fullmatch(ign_a, k) and k not in exp_a}
     mis = {k: v for k, v in expected.items() if not re.fullmatch(ign_e, k)}
     if sup or mis:
-        print("\tMismatch for %s!\nSuperfluous:\n%s\nMissing:\n%s" % (tag, sup, mis))
+        print(("\tMismatch for %s!\n" % tag) + indent("Superfluous:\n%s\nMissing:\n%s" % (sup, mis), "\t\t"))
         issues += 1
 
 
@@ -87,39 +97,49 @@ def check_wheel(wheelp, ogdfp, name, tag):
             headers[k] = v
         else:
             others[k] = v
-    check_diff("wheel includes", wheelp[name + ".data/data/include/"], headers,
-               exp_a=["ogdf/basic/internal/config_autogen.h"])
-    check_diff("not installed wheel includes", others,
-               {'coin/Readme.txt': 641,
-                'ogdf/lib/.clang-tidy': 109,
-                'ogdf/lib/minisat/LICENSE': 1142,
-                'ogdf/lib/minisat/doc/ReleaseNotes-2.2.0.txt': 3418})
-    if "win" not in tag:
-        check_diff("wheel examples", wheelp[name + ".data/data/share/doc/libogdf/examples/"], ogdfp["doc/examples/"],
-                   ign_e=".*\\.dox")
+
+    incl_cur, incl_oth = wheelp[name + ".data/data/include/"], wheelp["ogdf_wheel/install/include/"]
+    exam_cur, exam_oth = wheelp[name + ".data/data/share/doc/libogdf/examples/"], wheelp["ogdf_wheel/install/share/doc/libogdf/examples/"]
+    check = check_diff
+    if "win" in tag:
+        incl_cur, incl_oth = incl_oth, incl_cur
+        exam_cur, exam_oth = exam_oth, exam_cur
+        check = partial(check_diff, win=True)
+
+    check("wheel includes [cur]", incl_cur, headers, exp_a=["ogdf/basic/internal/config_autogen.h"])
+    check("wheel includes [oth]", incl_oth, {})
+    check("wheel examples [cur]", exam_cur, ogdfp["doc/examples/"], ign_e=".*\\.dox")
+    check("wheel examples [oth]", exam_oth, {})
+
+    check("not installed wheel includes", others,
+          {'coin/Readme.txt': 641,
+           'ogdf/lib/.clang-tidy': 109,
+           'ogdf/lib/minisat/LICENSE': 1142,
+           'ogdf/lib/minisat/doc/ReleaseNotes-2.2.0.txt': 3418})
 
     ign_meta = f"{name_esc}\\.dist-info/(METADATA|RECORD|WHEEL)|{name_esc}\\.data/data/lib/cmake/.*\.cmake"
-    exp_lic = [name + ".dist-info/license_files/" + f for f in LICENSES]
+    exp_lic = [name + ".dist-info/licenses/" + f for f in LICENSES] + ['ogdf_wheel/__init__.py']
     if "win" in tag:
-        check_diff("wheel rest [win]", wheelp[""], {},
-                   ign_a=ign_meta + "|install/lib/(COIN|OGDF)\.lib",
-                   exp_a=["OGDF.dll", *exp_lic])
+        check("wheel install [win]", wheelp["ogdf_wheel/install/"], {},
+              ign_a="lib/cmake/.*\.cmake|lib/(COIN|OGDF)\.lib",
+              exp_a=["bin/OGDF.dll"])
+        check("wheel rest [win]", wheelp[""], {}, ign_a=ign_meta, exp_a=exp_lic)
     elif "macos" in tag:
-        check_diff("wheel rest [macos]", wheelp[""], {},
-                   ign_a=ign_meta,
-                   exp_a=[name + ".data/data/lib/libOGDF.dylib", name + ".data/data/lib/libCOIN.dylib", *exp_lic])
+        check("wheel rest [macos]", wheelp[""], {},
+              ign_a=ign_meta,
+              exp_a=[name + ".data/data/lib/libOGDF.dylib", name + ".data/data/lib/libCOIN.dylib", *exp_lic])
     else:
-        check_diff("wheel rest [linux]", wheelp[""], {},
-                   ign_a=ign_meta,
-                   exp_a=[name + ".data/data/lib/libOGDF.so", name + ".data/data/lib/libCOIN.so", *exp_lic])
+        check("wheel rest [linux]", wheelp[""], {},
+              ign_a=ign_meta,
+              exp_a=[name + ".data/data/lib/libOGDF.so", name + ".data/data/lib/libCOIN.so", *exp_lic])
 
 
 def check_sdist(sdistp, ogdff):
     check_diff("sdist ogdf", sdistp["ogdf/"], ogdff,
                ign_e=ignore(".git", ".gitignore"))
     check_diff("sdist rest", sdistp[""], {},
-               ign_a="\\.git.*|test_[a-z_]+\\.py",
-               exp_a=['PKG-INFO', 'hatch_build.py', 'pyproject.toml'])
+               ign_a="\\.git.*|test_[a-z_]+\\.py|.*\\.patch",
+               exp_a=['PKG-INFO', 'hatch_build.py', 'pyproject.toml', 'src/ogdf_wheel/__init__.py'])
 
 
 def dump_data(dumpdir, files, partitions, name):
@@ -139,6 +159,10 @@ if __name__ == "__main__":
     @click.option('--ogdf', type=click.Path(exists=True, file_okay=False), default=Path("ogdf"))
     @click.option('--dump', type=click.Path(file_okay=False))
     def main(dist, ogdf, dump):
+        dist = Path(dist)
+        ogdf = Path(ogdf)
+        dump = Path(dump) if dump else dump
+
         sdists = list(dist.glob("*.tar.gz"))
         if len(sdists) != 1:
             raise click.Abort("Didn't find exactly one source dist (.tar.gz) in %s: %s" % (dist, sdists))
@@ -162,7 +186,9 @@ if __name__ == "__main__":
             print("Checking", wheel)
             checks += 1
             wheelf = get_wheel_files(wheel, name)
-            wheelp = partition(wheelf, [name + ".data/data/include/", name + ".data/data/share/doc/libogdf/examples/"])
+            wheelp = partition(wheelf, [
+                name + ".data/data/include/", name + ".data/data/share/doc/libogdf/examples/",
+                "ogdf_wheel/install/include/", "ogdf_wheel/install/share/doc/libogdf/examples/", "ogdf_wheel/install/"])
             if dump: dump_data(dump, wheelf, wheelp, "wheel-%s" % wheel.name)
             check_wheel(wheelp, ogdfp, name, wheel.stem)
 
