@@ -60,7 +60,7 @@ jobs:
 
       - name: Build sdist
         run: |
-          pip install build
+          pip install build click
           python -m build --sdist
 
       - name: Test packages
