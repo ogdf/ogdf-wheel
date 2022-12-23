@@ -128,6 +128,8 @@ class CustomBuildHook(BuildHookInterface):
             "-DOGDF_WARNING_ERRORS=OFF",
             "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path", "-DMACOSX_RPATH=TRUE",
         ]
+        if is_windows() and CONFIG.lower() == "debug":
+            flags.append("-DOGDF_MEMORY_MANAGER=MALLOC_TS")
         self.run("cmake", self.ogdf_src_dir, *flags)
 
         # import IPython

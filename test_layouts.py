@@ -66,4 +66,6 @@ def test_layouts():
 
 
 if __name__ == "__main__":
+    from cppyy import gbl
+    ogdf.get_stacktrace(gbl.std.cout)
     test_layouts()
