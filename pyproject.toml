@@ -23,11 +23,11 @@ environment-pass = ["GITHUB_ACTIONS"]
 manylinux-x86_64-image = "manylinux_2_28" # manylinux2014 uses a too old gcc (wlav/cppyy#70)
 build-frontend = "build"
 before-build = "pip debug --verbose"
-#test-command = [
-#    "pip install git+https://github.com/N-Coder/ogdf-python.git",
-#    "python -m ogdf_python",
-#    "python {project}/test_layouts.py",
-#]
+test-command = [
+    "pip install git+https://github.com/N-Coder/ogdf-python.git",
+    "python -m ogdf_python",
+    "python {project}/test_layouts.py",
+]
 
 [tool.hatch.build]
 ignore-vcs = true # "install" may not be excluded, otherwise weird things happen
