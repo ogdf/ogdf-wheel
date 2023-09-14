@@ -1,7 +1,7 @@
 [project]
 name = "ogdf-wheel"
 description = "An OGDF release build packaged as ready-to-use python wheel."
-version = "2022.02"
+version = "2023.09"
 classifiers = ["Programming Language :: Python :: 3"]
 requires-python = ">=3.7"
 license-files = { paths = [
