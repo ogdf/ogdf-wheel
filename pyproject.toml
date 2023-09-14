@@ -10,7 +10,7 @@ license-files = { paths = [
     "ogdf/LICENSE_GPL_v3.txt",
     "ogdf/include/ogdf/lib/minisat/LICENSE",
 ] }
-# readme = "README.md"
+readme = "README.md"
 # keywords = ["one", "two"]
 # license = { text = "BSD 3-Clause License" }
 # dependencies = ["matplotlib", "annoy ~= 1.17.0"]
