@@ -8,6 +8,8 @@ from pathlib import Path
 from textwrap import indent
 from zipfile import ZipFile
 
+IGNORE_GIT = "\\.git.*|.*\\.gitignore|.*\\.patch"
+
 
 def get_sdist_files(file, name):
     file = Path(file)
@@ -98,6 +100,7 @@ def check_wheel(wheelp, ogdfp, name, tag):
         else:
             others[k] = v
 
+    # _cur is the install location for the current platform (UNIX), _oth for the other (Windows)
     incl_cur, incl_oth = wheelp[name + ".data/data/include/"], wheelp["ogdf_wheel/install/include/"]
     exam_cur, exam_oth = wheelp[name + ".data/data/share/doc/libogdf/examples/"], wheelp["ogdf_wheel/install/share/doc/libogdf/examples/"]
     check = check_diff
@@ -108,14 +111,15 @@ def check_wheel(wheelp, ogdfp, name, tag):
 
     check("wheel includes [cur]", incl_cur, headers, exp_a=["ogdf/basic/internal/config_autogen.h"])
     check("wheel includes [oth]", incl_oth, {})
-    check("wheel examples [cur]", exam_cur, ogdfp["doc/examples/"], ign_e=".*\\.dox")
+    check("wheel examples [cur]", exam_cur, ogdfp["doc/examples/"], ign_e=IGNORE_GIT + "|.*\\.dox")
     check("wheel examples [oth]", exam_oth, {})
 
     check("not installed wheel includes", others,
           {'coin/Readme.txt': 641,
            'ogdf/lib/.clang-tidy': 109,
            'ogdf/lib/minisat/LICENSE': 1142,
-           'ogdf/lib/minisat/doc/ReleaseNotes-2.2.0.txt': 3418})
+           'ogdf/lib/minisat/doc/ReleaseNotes-2.2.0.txt': 3418,
+           'ogdf/geometric/README.md': 321})
 
     ign_meta = f"{name_esc}\\.dist-info/(METADATA|RECORD|WHEEL)|{name_esc}\\.data/data/lib/cmake/.*\.cmake"
     exp_lic = [name + ".dist-info/licenses/" + f for f in LICENSES] + ['ogdf_wheel/__init__.py']
@@ -136,10 +140,10 @@ def check_wheel(wheelp, ogdfp, name, tag):
 
 def check_sdist(sdistp, ogdff):
     check_diff("sdist ogdf", sdistp["ogdf/"], ogdff,
-               ign_e=ignore(".git", ".gitignore"))
+               ign_e=IGNORE_GIT)
     check_diff("sdist rest", sdistp[""], {},
-               ign_a="\\.git.*|test_[a-z_]+\\.py|.*\\.patch",
-               exp_a=['PKG-INFO', 'hatch_build.py', 'pyproject.toml', 'src/ogdf_wheel/__init__.py'])
+               ign_a=IGNORE_GIT + "|test_[a-z_]+\\.py",
+               exp_a=['PKG-INFO', 'hatch_build.py', 'pyproject.toml', 'src/ogdf_wheel/__init__.py', 'README.md'])
 
 
 def dump_data(dumpdir, files, partitions, name):
