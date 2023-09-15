@@ -119,10 +119,10 @@ class CustomBuildHook(BuildHookInterface):
             with open(comp_spec_cmake, "wt") as f:
                 f.writelines("# " + l if "march=native" in l and not l.strip().startswith("#") else l for l in lines)
 
-        CONFIG = "Release"
+        CONFIG = "Debug"
         flags = [
             "-DCMAKE_BUILD_TYPE=" + CONFIG, "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
-            # "-DOGDF_USE_ASSERT_EXCEPTIONS=ON",  # "-DOGDF_USE_ASSERT_EXCEPTIONS_WITH=ON_LIBUNWIND",
+            "-DOGDF_USE_ASSERT_EXCEPTIONS=ON",  # "-DOGDF_USE_ASSERT_EXCEPTIONS_WITH=ON_LIBUNWIND",
             "-DOGDF_MEMORY_MANAGER=POOL_TS",
             # "-DOGDF_MEMORY_MANAGER=MALLOC_TS", "-DOGDF_LEAK_CHECK=ON",
             "-DOGDF_WARNING_ERRORS=OFF",
