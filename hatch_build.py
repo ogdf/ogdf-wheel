@@ -121,13 +121,20 @@ class CustomBuildHook(BuildHookInterface):
 
         CONFIG = "Debug"
         flags = [
-            "-DCMAKE_BUILD_TYPE=" + CONFIG, "-DBUILD_SHARED_LIBS=ON", "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
-            "-DOGDF_USE_ASSERT_EXCEPTIONS=ON",  # "-DOGDF_USE_ASSERT_EXCEPTIONS_WITH=ON_LIBUNWIND",
+            "-DCMAKE_BUILD_TYPE=" + CONFIG, "-DBUILD_SHARED_LIBS=ON",
+            "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
+            "-DOGDF_WARNING_ERRORS=OFF",
+            "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path",
+            "-DMACOSX_RPATH=TRUE",
+        ]
+        if CONFIG == "Debug" and not is_windows():
+            flags.extend([
+                "-DOGDF_USE_ASSERT_EXCEPTIONS=ON",  # "-DOGDF_USE_ASSERT_EXCEPTIONS_WITH=ON_LIBUNWIND",
+            ])
+        flags.extend([
             "-DOGDF_MEMORY_MANAGER=POOL_TS",
             # "-DOGDF_MEMORY_MANAGER=MALLOC_TS", "-DOGDF_LEAK_CHECK=ON",
-            "-DOGDF_WARNING_ERRORS=OFF",
-            "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path", "-DMACOSX_RPATH=TRUE",
-        ]
+        ])
         self.run("cmake", self.ogdf_src_dir, *flags)
 
         # import IPython
