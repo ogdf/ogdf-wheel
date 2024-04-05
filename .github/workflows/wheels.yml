@@ -83,6 +83,8 @@ jobs:
     name: Test on ${{ matrix.os }}
     needs: check_contents
     runs-on: ${{ matrix.os }}
+    env:
+      CLING_REBUILD_PCH: 1
     strategy:
       fail-fast: false
       matrix:
