@@ -110,7 +110,7 @@ jobs:
         run: pip install --no-index --find-links ./dist ogdf-wheel
 
       - name: Install ogdf-python
-        run: pip install git+https://github.com/N-Coder/ogdf-python.git
+        run: pip install git+https://github.com/N-Coder/ogdf-python.git "cppyy<3.1"
 
       - name: Get ogdf-python info
         run: python -m ogdf_python
