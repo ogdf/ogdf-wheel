@@ -1,6 +1,8 @@
 name: wheels
 
 on: [ push, pull_request ]
+env:
+  STDCXX: 17
 
 jobs:
   build_wheels:
