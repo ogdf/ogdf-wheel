@@ -10,6 +10,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, macos-latest, macos-13, windows-latest ]
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "10.14" # https://cibuildwheel.pypa.io/en/stable/cpp_standards/#macos-and-deployment-target-versions
 
     steps:
       - uses: actions/checkout@v4
