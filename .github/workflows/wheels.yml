@@ -112,7 +112,7 @@ jobs:
       - name: Test ogdf-python layouts
         run: python test_layouts.py
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: svgs-${{ matrix.os }}
