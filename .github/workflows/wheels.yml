@@ -100,6 +100,14 @@ jobs:
           name: wheels
           path: dist
 
+      # https://github.com/wlav/cppyy/issues/308
+      - name: Configure MacOS
+        if: runner.os == 'macOS'
+        run: |
+          brew install zstd
+          echo "LD_LIBRARY_PATH=/opt/homebrew/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
+
       - name: Install wheel
         run: pip install --no-index --find-links ./dist ogdf-wheel
 
