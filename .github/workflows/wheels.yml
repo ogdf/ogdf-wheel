@@ -108,6 +108,15 @@ jobs:
           echo "LD_LIBRARY_PATH=/opt/homebrew/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
           echo "DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
 
+      # https://github.com/wlav/cppyy/issues/282
+      - name: Configure Windows
+        if: runner.os == 'Windows'
+        run: |
+          pip install cppyy-cling==6.32.8 --no-deps --no-build-isolation --force-reinstall
+          pip install cppyy-backend==1.15.3 --no-deps --no-build-isolation --force-reinstall
+          pip install CPyCppyy==1.13.0 --no-deps --no-build-isolation --force-reinstall
+          pip install cppyy==3.5.0 --no-deps --no-build-isolation --force-reinstall
+
       - name: Install wheel
         run: pip install --no-index --find-links ./dist ogdf-wheel
 
