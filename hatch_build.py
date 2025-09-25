@@ -28,6 +28,10 @@ def is_windows():
     return platform.system() == "Windows"
 
 
+def is_macos():
+    return platform.system() == "Darwin"
+
+
 def sync():
     sys.stdout.flush()
     sys.stderr.flush()
@@ -111,42 +115,26 @@ class CustomBuildHook(BuildHookInterface):
             pprint(build_data)
             pprint(self.build_config.__dict__)
 
-        # disable march=native optimizations (including SSE3)
-        if is_cibuildwheel():
-            comp_spec_cmake = self.ogdf_src_dir / "cmake" / "compiler-specifics.cmake"
-            with open(comp_spec_cmake, "rt") as f:
-                lines = f.readlines()
-            with open(comp_spec_cmake, "wt") as f:
-                f.writelines("# " + l if "march=native" in l and not l.strip().startswith("#") else l for l in lines)
-
-        CONFIG = "Debug"
         flags = [
-            "-DCMAKE_BUILD_TYPE=" + CONFIG, "-DBUILD_SHARED_LIBS=ON",
+            "-DCMAKE_CONFIGURATION_TYPES=Debug;Release",
+            "-DCMAKE_CROSS_CONFIGS=all", "-DCMAKE_DEFAULT_CONFIGS=all",
+            "-DBUILD_SHARED_LIBS=ON",
             "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
             "-DOGDF_WARNING_ERRORS=OFF",
             "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path",
             "-DMACOSX_RPATH=TRUE",
+            "-DOGDF_USE_ASSERT_EXCEPTIONS=ON",  # "-DOGDF_USE_ASSERT_EXCEPTIONS_WITH=ON_LIBUNWIND",
+            "-DOGDF_MEMORY_MANAGER=POOL_TS",  # "-DOGDF_MEMORY_MANAGER=MALLOC_TS", "-DOGDF_LEAK_CHECK=ON",
         ]
-        if CONFIG == "Debug" and not is_windows():
-            flags.extend([
-                "-DOGDF_USE_ASSERT_EXCEPTIONS=ON",  # "-DOGDF_USE_ASSERT_EXCEPTIONS_WITH=ON_LIBUNWIND",
-            ])
-        flags.extend([
-            "-DOGDF_MEMORY_MANAGER=POOL_TS",
-            # "-DOGDF_MEMORY_MANAGER=MALLOC_TS", "-DOGDF_LEAK_CHECK=ON",
-        ])
+        if not is_windows() and not is_macos():  # XCode and VS are multi-config by default
+            flags.append("-G Ninja Multi-Config")
         self.run("cmake", self.ogdf_src_dir, *flags)
 
         # import IPython
         # IPython.embed()
 
-        # windows needs config repeated but no parallel
-        build_opts = []
-        if not is_windows():
-            build_opts = ["--parallel", str(multiprocessing.cpu_count())]
-        self.run("cmake", "--build", ".", "--config", CONFIG, *build_opts)
-
-        self.run("cmake", "--install", ".", "--config", CONFIG)
+        self.run("cmake", "--build", ".")
+        self.run("cmake", "--install", ".")
 
         self.dump_files(self.directory)
         self.dump_files(self.root)
