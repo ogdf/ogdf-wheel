@@ -124,11 +124,25 @@ jobs:
       - name: Install ogdf-python
         run: pip install git+https://github.com/N-Coder/ogdf-python.git
 
-      - name: Get ogdf-python info
+      - name: Get ogdf-python release info
         run: python -m ogdf_python
+        env:
+          OGDF_PYTHON_MODE: release
 
-      - name: Test ogdf-python layouts
+      - name: Get ogdf-python debug info
+        run: python -m ogdf_python
+        env:
+          OGDF_PYTHON_MODE: debug
+
+      - name: Test ogdf-python layouts in release mode
         run: python test_layouts.py
+        env:
+          OGDF_PYTHON_MODE: release
+
+      - name: Test ogdf-python layouts in debug mode
+        run: python test_layouts.py
+        env:
+          OGDF_PYTHON_MODE: debug
 
       - uses: actions/upload-artifact@v4
         if: always()
