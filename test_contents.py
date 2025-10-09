@@ -62,16 +62,26 @@ issues = 0
 
 
 def check_diff(tag, actual, expected, ign_a="", ign_e="", exp_a=[], win=False):
+    """
+    :param tag: tag for logging
+    :param actual: {filename: size} dict of actually found files
+    :param expected: {filename: size} dict of expected files
+    :param ign_a: regex for ignoring superfluous files that are in actual but not in expected
+    :param ign_e: regex for ignoring missing files that are in expected but not in actual
+    :param exp_a: list of additional file names that need to be present in actual, independent of expected
+    :param win: on windows, we ignore file sizes
+    """
     global issues
     print("\tChecking", tag)
-    if win:
-        actual, expected = diff_dict_keys(actual, expected)
-    else:
-        actual, expected = diff_dicts(actual, expected)
     for e in exp_a:
         if e not in actual:
             print("\tMissing file %s in %s!" % (e, tag))
             issues += 1
+
+    if win:  # ignore file sizes on windows
+        actual, expected = diff_dict_keys(actual, expected)
+    else:
+        actual, expected = diff_dicts(actual, expected)
     sup = {k: v for k, v in actual.items() if not re.fullmatch(ign_a, k) and k not in exp_a}
     mis = {k: v for k, v in expected.items() if not re.fullmatch(ign_e, k)}
     if sup or mis:
@@ -91,7 +101,7 @@ LICENSES = [
 ]
 
 
-def check_wheel(wheelp, ogdfp, name, tag):
+def check_wheel(wheelp, ogdfp, name, tag, config):
     name_esc = ignore(name)
     headers, others = {}, {}
     for k, v in ogdfp["include/"].items():
@@ -100,7 +110,8 @@ def check_wheel(wheelp, ogdfp, name, tag):
         else:
             others[k] = v
 
-    # _cur is the install location for the current platform (UNIX), _oth for the other (Windows)
+    # _cur is the install location for the current target platform (default UNIX), _oth for the other (Windows)
+    # only one of them will actually contain files, depending on the target platform
     incl_cur, incl_oth = wheelp[name + ".data/data/include/"], wheelp["ogdf_wheel/install/include/"]
     exam_cur, exam_oth = wheelp[name + ".data/data/share/doc/libogdf/examples/"], wheelp["ogdf_wheel/install/share/doc/libogdf/examples/"]
     check = check_diff
@@ -109,7 +120,11 @@ def check_wheel(wheelp, ogdfp, name, tag):
         exam_cur, exam_oth = exam_oth, exam_cur
         check = partial(check_diff, win=True)
 
-    check("wheel includes [cur]", incl_cur, headers, exp_a=["ogdf/basic/internal/config_autogen.h"])
+    if config:
+        check("wheel includes [cur]", incl_cur, headers, exp_a=[f"ogdf-{config}/ogdf/basic/internal/config_autogen.h"])
+    else:
+        check("wheel includes [cur]", incl_cur, headers,
+              exp_a=["ogdf-debug/ogdf/basic/internal/config_autogen.h", "ogdf-release/ogdf/basic/internal/config_autogen.h"])
     check("wheel includes [oth]", incl_oth, {})
     check("wheel examples [cur]", exam_cur, ogdfp["doc/examples/"], ign_e=IGNORE_GIT + "|.*\\.dox")
     check("wheel examples [oth]", exam_oth, {})
@@ -121,21 +136,32 @@ def check_wheel(wheelp, ogdfp, name, tag):
            'ogdf/lib/minisat/doc/ReleaseNotes-2.2.0.txt': 3418,
            'ogdf/geometric/README.md': 321})
 
-    ign_meta = f"{name_esc}\\.dist-info/(METADATA|RECORD|WHEEL)|{name_esc}\\.data/data/lib/cmake/.*\.cmake"
+    def expand_suffix(*paths, pre=""):
+        ret = []
+        if config != "release":
+            ret.extend(pre + p.replace("{suffix}", "-debug") for p in paths)
+        if config != "debug":
+            ret.extend(pre + p.replace("{suffix}", "") for p in paths)
+        return ret
+
+    ign_meta = f"{name_esc}\\.dist-info/(METADATA|RECORD|WHEEL)|{name_esc}\\.data/data/(lib/cmake|share/ogdf)/.*\\.cmake"
     exp_lic = [name + ".dist-info/licenses/" + f for f in LICENSES] + ['ogdf_wheel/__init__.py']
     if "win" in tag:
         check("wheel install [win]", wheelp["ogdf_wheel/install/"], {},
-              ign_a="lib/cmake/.*\.cmake|lib/(COIN|OGDF)\.lib",
-              exp_a=["bin/OGDF.dll"])
+              ign_a="lib/cmake/.*\\.cmake|lib/(COIN|OGDF)" + ('(-debug)' if config != 'release' else '')
+                    + ('' if config else '?') + "\\.lib",
+              exp_a=expand_suffix("bin/OGDF{suffix}.dll"))
         check("wheel rest [win]", wheelp[""], {}, ign_a=ign_meta, exp_a=exp_lic)
     elif "macos" in tag:
         check("wheel rest [macos]", wheelp[""], {},
               ign_a=ign_meta,
-              exp_a=[name + ".data/data/lib/libOGDF.dylib", name + ".data/data/lib/libCOIN.dylib", *exp_lic])
+              exp_a=expand_suffix("libOGDF{suffix}.dylib", "libCOIN{suffix}.dylib", pre=name + ".data/data/lib/")
+                    + exp_lic)
     else:
         check("wheel rest [linux]", wheelp[""], {},
-              ign_a=ign_meta,
-              exp_a=[name + ".data/data/lib/libOGDF.so", name + ".data/data/lib/libCOIN.so", *exp_lic])
+              ign_a=ign_meta+f"|{name}.data/data/lib(64)?/lib.*\\.so\\.[0-9]+\\.[0-9]+",
+              exp_a=expand_suffix("libOGDF{suffix}.so", "libCOIN{suffix}.so", pre=name + ".data/data/lib/")
+                    + exp_lic)
 
 
 def check_sdist(sdistp, ogdff):
@@ -162,7 +188,8 @@ if __name__ == "__main__":
     @click.option('--dist', type=click.Path(exists=True, file_okay=False), default=Path("dist"))
     @click.option('--ogdf', type=click.Path(exists=True, file_okay=False), default=Path("ogdf"))
     @click.option('--dump', type=click.Path(file_okay=False))
-    def main(dist, ogdf, dump):
+    @click.option('--config', default="")
+    def main(dist, ogdf, dump, config):
         dist = Path(dist)
         ogdf = Path(ogdf)
         dump = Path(dump) if dump else dump
@@ -194,7 +221,7 @@ if __name__ == "__main__":
                 name + ".data/data/include/", name + ".data/data/share/doc/libogdf/examples/",
                 "ogdf_wheel/install/include/", "ogdf_wheel/install/share/doc/libogdf/examples/", "ogdf_wheel/install/"])
             if dump: dump_data(dump, wheelf, wheelp, "wheel-%s" % wheel.name)
-            check_wheel(wheelp, ogdfp, name, wheel.stem)
+            check_wheel(wheelp, ogdfp, name, wheel.stem, config)
 
         if issues:
             print("There were %s issue(s)!" % issues)

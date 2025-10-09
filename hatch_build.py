@@ -63,9 +63,8 @@ class CustomBuildHook(BuildHookInterface):
             plat = sysconfig.get_platform()
         return "py3-none-%s" % plat.replace("-", "_").replace(".", "_")
 
-    @cached_property
-    def cmake_build_dir(self):
-        p = Path(self.directory) / "cmake_build"
+    def cmake_build_dir(self, config):
+        p = Path(self.directory) / f"cmake_build_{config}"
         p.mkdir(parents=True, exist_ok=True)
         return p
 
@@ -82,10 +81,10 @@ class CustomBuildHook(BuildHookInterface):
     def ogdf_src_dir(self):
         return Path(self.root) / "ogdf"
 
-    def run(self, *args):
+    def run(self, *args, dir):
         args = list(map(str, args))
         with group("Running", *args):
-            return subprocess.run(args, capture_output=False, check=True, cwd=self.cmake_build_dir)
+            return subprocess.run(args, capture_output=False, check=True, cwd=dir)
 
     def dump_files(self, dir):
         with group("Index of", dir):
@@ -112,29 +111,44 @@ class CustomBuildHook(BuildHookInterface):
             del self.build_config.target_config["shared-data"]
 
         with group("Config"):
+            pprint({
+                "root": self.root,
+                "directory": self.directory,
+                "ogdf_src_dir": self.ogdf_src_dir,
+                "cmake_install_dir": self.cmake_install_dir,
+                "cmake_build_dir debug": self.cmake_build_dir("debug"),
+                "cmake_build_dir release": self.cmake_build_dir("release"),
+            })
             pprint(build_data)
             pprint(self.build_config.__dict__)
 
         flags = [
-            "-DCMAKE_CONFIGURATION_TYPES=Debug;Release",
-            "-DCMAKE_CROSS_CONFIGS=all", "-DCMAKE_DEFAULT_CONFIGS=all",
             "-DBUILD_SHARED_LIBS=ON",
             "-DCMAKE_INSTALL_PREFIX=%s" % self.cmake_install_dir,
             "-DOGDF_WARNING_ERRORS=OFF",
             "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path",
             "-DMACOSX_RPATH=TRUE",
-            "-DOGDF_USE_ASSERT_EXCEPTIONS=ON",  # "-DOGDF_USE_ASSERT_EXCEPTIONS_WITH=ON_LIBUNWIND",
             "-DOGDF_MEMORY_MANAGER=POOL_TS",  # "-DOGDF_MEMORY_MANAGER=MALLOC_TS", "-DOGDF_LEAK_CHECK=ON",
         ]
-        if not is_windows() and not is_macos():  # XCode and VS are multi-config by default
-            flags.append("-G Ninja Multi-Config")
-        self.run("cmake", self.ogdf_src_dir, *flags)
+
+        release_dir = self.cmake_build_dir("release")
+        self.run("cmake", self.ogdf_src_dir, "-DCMAKE_BUILD_TYPE=Release", *flags, dir=release_dir)
+        self.run("cmake", "--build", ".", "--config", "Release", "--parallel", str(multiprocessing.cpu_count()),
+                 dir=release_dir)
+        self.run("cmake", "--install", ".", "--config", "Release", dir=release_dir)
+
+        if not is_windows():
+            flags.extend([
+                "-DOGDF_USE_ASSERT_EXCEPTIONS=ON",  # "-DOGDF_USE_ASSERT_EXCEPTIONS_WITH=ON_LIBUNWIND",
+            ])
+        debug_dir = self.cmake_build_dir("debug")
+        self.run("cmake", self.ogdf_src_dir, "-DCMAKE_BUILD_TYPE=Debug", *flags, dir=debug_dir)
+        self.run("cmake", "--build", ".", "--config", "Debug", "--parallel", str(multiprocessing.cpu_count()),
+                 dir=debug_dir)
+        self.run("cmake", "--install", ".", "--config", "Debug", dir=debug_dir)
 
         # import IPython
         # IPython.embed()
-
-        self.run("cmake", "--build", ".")
-        self.run("cmake", "--install", ".")
 
         self.dump_files(self.directory)
         self.dump_files(self.root)
@@ -158,5 +172,6 @@ class CustomBuildHook(BuildHookInterface):
         the [`clean`](../cli/reference.md#hatch-clean) command.
         """
         import shutil
-        shutil.rmtree(self.cmake_build_dir)
-        shutil.rmtree(self.cmake_install_dir)
+        shutil.rmtree(self.cmake_build_dir("release"), ignore_errors=True)
+        shutil.rmtree(self.cmake_build_dir("debug"), ignore_errors=True)
+        shutil.rmtree(self.cmake_install_dir, ignore_errors=True)
