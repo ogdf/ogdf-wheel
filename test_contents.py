@@ -113,7 +113,8 @@ def check_wheel(wheelp, ogdfp, name, tag, config):
     # _cur is the install location for the current target platform (default UNIX), _oth for the other (Windows)
     # only one of them will actually contain files, depending on the target platform
     incl_cur, incl_oth = wheelp[name + ".data/data/include/"], wheelp["ogdf_wheel/install/include/"]
-    exam_cur, exam_oth = wheelp[name + ".data/data/share/doc/libogdf/examples/"], wheelp["ogdf_wheel/install/share/doc/libogdf/examples/"]
+    exam_cur, exam_oth = wheelp[name + ".data/data/share/doc/libogdf/examples/"], wheelp[
+        "ogdf_wheel/install/share/doc/libogdf/examples/"]
     check = check_diff
     if "win" in tag:
         incl_cur, incl_oth = incl_oth, incl_cur
@@ -124,7 +125,8 @@ def check_wheel(wheelp, ogdfp, name, tag, config):
         check("wheel includes [cur]", incl_cur, headers, exp_a=[f"ogdf-{config}/ogdf/basic/internal/config_autogen.h"])
     else:
         check("wheel includes [cur]", incl_cur, headers,
-              exp_a=["ogdf-debug/ogdf/basic/internal/config_autogen.h", "ogdf-release/ogdf/basic/internal/config_autogen.h"])
+              exp_a=["ogdf-debug/ogdf/basic/internal/config_autogen.h",
+                     "ogdf-release/ogdf/basic/internal/config_autogen.h"])
     check("wheel includes [oth]", incl_oth, {})
     check("wheel examples [cur]", exam_cur, ogdfp["doc/examples/"], ign_e=IGNORE_GIT + "|.*\\.dox")
     check("wheel examples [oth]", exam_oth, {})
@@ -148,8 +150,8 @@ def check_wheel(wheelp, ogdfp, name, tag, config):
     exp_lic = [name + ".dist-info/licenses/" + f for f in LICENSES] + ['ogdf_wheel/__init__.py']
     if "win" in tag:
         check("wheel install [win]", wheelp["ogdf_wheel/install/"], {},
-              ign_a="lib/cmake/.*\\.cmake|lib/(COIN|OGDF)" + ('(-debug)' if config != 'release' else '')
-                    + ('' if config else '?') + "\\.lib",
+              ign_a="bin/(msvc|vcruntime|concrt).*\.dll|share/ogdf/.*\\.cmake|lib/(COIN|OGDF)" + (
+                  '(-debug)' if config != 'release' else '') + ('' if config else '?') + "\\.lib",
               exp_a=expand_suffix("bin/OGDF{suffix}.dll"))
         check("wheel rest [win]", wheelp[""], {}, ign_a=ign_meta, exp_a=exp_lic)
     elif "macos" in tag:
@@ -159,8 +161,8 @@ def check_wheel(wheelp, ogdfp, name, tag, config):
                     + exp_lic)
     else:
         check("wheel rest [linux]", wheelp[""], {},
-              ign_a=ign_meta+f"|{name}.data/data/lib(64)?/lib.*\\.so\\.[0-9]+\\.[0-9]+",
-              exp_a=expand_suffix("libOGDF{suffix}.so", "libCOIN{suffix}.so", pre=name + ".data/data/lib/")
+              ign_a=ign_meta,
+              exp_a=expand_suffix("libOGDF{suffix}.so", "libCOIN{suffix}.so", pre=name + ".data/data/lib64/")
                     + exp_lic)
 
 
