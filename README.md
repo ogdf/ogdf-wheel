@@ -12,3 +12,14 @@ The CI does neither automatically build new OGDF versions nor directly publishes
 - Wait for the CI there to finish.
 - Download the resulting `.whl` files.
 - Use [`twine`](https://twine.readthedocs.io/en/stable/index.html) to upload the files to PyPi.
+
+## Building the sdist locally
+
+```bash
+cd /tmp
+git clone /path/to/ogdf-wheel
+cd /tmp/ogdf-wheel
+git submodule update --init --recursive
+python -m build --sdist
+mv dist/ogdf_wheel-*.tar.gz /path/to/ogdf-wheel/dist
+```

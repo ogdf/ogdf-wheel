@@ -1,6 +1,7 @@
 import multiprocessing
 import os
 import platform
+import re
 import subprocess
 import sys
 import sysconfig
@@ -121,6 +122,13 @@ class CustomBuildHook(BuildHookInterface):
             })
             pprint(build_data)
             pprint(self.build_config.__dict__)
+
+        # remove version information from .so name
+        cmake_file = self.ogdf_src_dir / "CMakeLists.txt"
+        with open(cmake_file, "rt") as f:
+            lines = f.readlines()
+        with open(cmake_file, "wt") as f:
+            f.writelines(re.sub(' *VERSION "20[0-9.]+"', '', l) for l in lines)
 
         flags = [
             "-DBUILD_SHARED_LIBS=ON",
