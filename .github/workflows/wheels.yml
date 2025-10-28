@@ -121,6 +121,9 @@ jobs:
       - name: Install wheel
         run: pip install --no-index --find-links ./dist ogdf-wheel
 
+      - name: List installed files from wheel
+        run: pip show -f ogdf-wheel
+
       - name: Install ogdf-python
         run: pip install git+https://github.com/N-Coder/ogdf-python.git
 
