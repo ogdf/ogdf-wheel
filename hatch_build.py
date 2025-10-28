@@ -136,6 +136,7 @@ class CustomBuildHook(BuildHookInterface):
             "-DOGDF_WARNING_ERRORS=OFF",
             "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path",
             "-DMACOSX_RPATH=TRUE",
+            "-DCMAKE_INSTALL_LIBDIR=lib", # instead of lib64 https://stackoverflow.com/a/76528304
             "-DOGDF_MEMORY_MANAGER=POOL_TS",  # "-DOGDF_MEMORY_MANAGER=MALLOC_TS", "-DOGDF_LEAK_CHECK=ON",
         ]
 

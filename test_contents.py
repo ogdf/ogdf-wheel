@@ -162,7 +162,7 @@ def check_wheel(wheelp, ogdfp, name, tag, config):
     else:
         check("wheel rest [linux]", wheelp[""], {},
               ign_a=ign_meta,
-              exp_a=expand_suffix("libOGDF{suffix}.so", "libCOIN{suffix}.so", pre=name + ".data/data/lib64/")
+              exp_a=expand_suffix("libOGDF{suffix}.so", "libCOIN{suffix}.so", pre=name + ".data/data/lib/")
                     + exp_lic)
 
 
