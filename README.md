@@ -1,6 +1,7 @@
 # ogdf-wheel - an OGDF release build packaged as ready-to-use python wheel.
 
 This project uses [cibuildwheel](cibuildwheel.readthedocs.io) to build the [OGDF](github.com/ogdf/ogdf) library into a ready-to-use python package (called wheel) installable via `pip install ogdf-wheel`.
+The wheel contains both debug and release builds of the OGDF.
 It is mainly intended to be used with [`ogdf-python`](github.com/ogdf/ogdf-python) when you don't want to build the OGDF yourself or use a C++ package manager.
 
 ## Publishing new Releases
@@ -12,7 +13,7 @@ The CI does neither automatically build new OGDF versions nor directly publishes
 - Commit and push your changes to GitHub.
 - Wait for the CI there to finish.
 - Download the resulting `.whl` files.
-- Use [`twine`](https://twine.readthedocs.io/en/stable/index.html) to upload the files to PyPi.
+- Use [`twine`](https://twine.readthedocs.io/en/stable/index.html) to upload the files to PyPi, see also the [`ogdf-python` release process](https://github.com/ogdf/ogdf-python/blob/master/README.md).
 
 ## Building a clean sdist locally
 
