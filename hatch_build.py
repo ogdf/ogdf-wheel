@@ -136,9 +136,12 @@ class CustomBuildHook(BuildHookInterface):
             "-DOGDF_WARNING_ERRORS=OFF",
             "-DCMAKE_BUILD_RPATH=$ORIGIN;@loader_path", "-DCMAKE_INSTALL_RPATH=$ORIGIN;@loader_path",
             "-DMACOSX_RPATH=TRUE",
-            "-DCMAKE_INSTALL_LIBDIR=lib", # instead of lib64 https://stackoverflow.com/a/76528304
-            "-DOGDF_MEMORY_MANAGER=POOL_TS",  # "-DOGDF_MEMORY_MANAGER=MALLOC_TS", "-DOGDF_LEAK_CHECK=ON",
+            "-DCMAKE_INSTALL_LIBDIR=lib",  # instead of lib64 https://stackoverflow.com/a/76528304
         ]
+        if is_windows():
+            flags.append("-DOGDF_MEMORY_MANAGER=MALLOC_TS")
+        else:
+            flags.append("-DOGDF_MEMORY_MANAGER=POOL_TS")
 
         release_dir = self.cmake_build_dir("release")
         self.run("cmake", self.ogdf_src_dir, "-DCMAKE_BUILD_TYPE=Release", *flags, dir=release_dir)

@@ -13,7 +13,7 @@ The CI does neither automatically build new OGDF versions nor directly publishes
 - Commit and push your changes to GitHub.
 - Wait for the CI there to finish.
 - Download the resulting `.whl` files.
-- Use [`twine`](https://twine.readthedocs.io/en/stable/index.html) to upload the files to PyPi, see also the [`ogdf-python` release process](https://github.com/ogdf/ogdf-python/blob/master/README.md).
+- Use [`twine`](https://twine.readthedocs.io/en/stable/index.html) to upload the files to PyPi, see also the [`ogdf-python` release process](https://github.com/ogdf/ogdf-python/blob/master/RELEASING.md).
 
 ## Building a clean sdist locally
 
